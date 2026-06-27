@@ -1,0 +1,43 @@
+name: "Foundry setup (pinned)"
+description: >
+  Composite action: install a pinned Foundry toolchain, run `forge install` for
+  the pinned forge-std dep, and (optionally) build. Pattern referenced from
+  CaliperForge hyperevm-safety; tags pinned here rather than vendored so
+  they're greppable from one place.
+
+inputs:
+  foundry-version:
+    description: >
+      Foundry release/version to install (nightly tag or commit). Defaults to
+      the same pin hyperevm-safety uses so PR CI is deterministic and bumps
+      happen in one place across CaliperForge libraries. The nightly workflow
+      (M2) overrides with `nightly` on its "latest" leg to surface drift.
+    required: false
+    default: "nightly-de33b6af53005037b463318d2628b5cfcaf39916"
+  forge-std-version:
+    description: "forge-std tag to install."
+    required: false
+    default: "v1.9.4"
+  build:
+    description: "Whether to run `forge build` after install."
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Foundry (${{ inputs.foundry-version }})
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: ${{ inputs.foundry-version }}
+
+    - name: forge install (pinned deps)
+      shell: bash
+      run: |
+        set -euo pipefail
+        forge install --no-commit "foundry-rs/forge-std@${{ inputs.forge-std-version }}" || true
+
+    - name: forge build
+      if: ${{ inputs.build == 'true' }}
+      shell: bash
+      run: forge build --sizes

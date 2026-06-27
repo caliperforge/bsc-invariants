@@ -1,0 +1,3 @@
+# M2 — Recon Chimera `CryticTester.sol` + `Properties.sol` land here.
+# Path-gated CI jobs in `.github/workflows/ci.yml` flip on this directory
+# becoming populated.

@@ -1,0 +1,72 @@
+bsc-invariants
+Copyright 2026 CaliperForge / Michael Moffett.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this work except in compliance with the License. You may obtain
+a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+
+This NOTICE file is provided for compliance with Section 4(d) of the
+Apache License.
+
+------------------------------------------------------------------------
+Upstream attributions
+------------------------------------------------------------------------
+
+The bsc-invariants library is built on the following upstream work. Each
+attribution carries the pinned version it currently targets; this file
+is updated as pins move.
+
+- Uniswap v3 — `Uniswap/v3-core`, GPL-2.0-or-later. PancakeSwap v3 is a
+  1:1 fork of Uniswap v3's core math (`TickMath`, `SqrtPriceMath`,
+  `SwapMath`, fee-growth accounting). The constants reproduced in
+  `src/lib/TickMath.sol` (MIN_TICK, MAX_TICK, MIN_SQRT_RATIO,
+  MAX_SQRT_RATIO) are facts about the protocol's address space, not
+  copyrightable expression; the constants live in this repo with an
+  attribution pointer rather than as a vendored file. If at M2 we
+  vendor the GPL-licensed `TickMath.sol` source verbatim, this NOTICE
+  + the file header will name it explicitly and the repo's license
+  posture will be re-evaluated against GPL-2.0-or-later compatibility.
+
+- PancakeSwap v3 — `pancakeswap/pancake-v3-contracts`, GPL-2.0-or-later
+  for `projects/v3-core`. The reference contract in
+  `src/PancakeV3FeeAccountingRef.sol` is a same-source twin minimal to
+  the fee-growth + tick-bound invariants under test; it is NOT a fork
+  of PancakeSwap's production source. The invariants tested are
+  documented in `docs/invariants.md` with citations to the upstream
+  v3 whitepaper (the canonical source for the fee-growth-only-grows
+  property).
+
+- CaliperForge hyperevm-safety — Apache-2.0. The Foundry config, the
+  composite Foundry-setup GitHub Action, the path-gated CI pattern,
+  and the planted-twin discipline are ported 1:1 from
+  `experiments/hyperevm-safety/`. The `bsc-invariants` repo extends
+  the discipline to BNB Smart Chain DeFi protocols (PancakeSwap v3 at
+  M1; Venus + Stargate planned at M2 / M3).
+
+- CaliperForge chimera-template-pack — Apache-2.0. Foundry + Recon
+  Chimera + Echidna + Medusa scaffold. `bsc-invariants` reuses the
+  composite-action pin pattern + the seeded-fuzz configuration. The
+  full Chimera `Properties.sol` bundle is M2 work (not in the Week-1
+  scaffold).
+
+------------------------------------------------------------------------
+Toolchain authors
+------------------------------------------------------------------------
+
+- Foundry (forge, anvil, cast) — Foundry-rs.
+- Recon Chimera — Recon.
+- Echidna — Trail of Bits.
+- Medusa — Trail of Bits.
+- Halmos — a16z crypto.
+
+------------------------------------------------------------------------
+The CaliperForge harnesses this library extends
+------------------------------------------------------------------------
+
+- chimera-template-pack — the EVM Foundry + Recon Chimera scaffold this
+  library is built on top of. Apache-2.0.
+- invariant-atlas — the cross-VM exploit-to-invariant case set that
+  established the twin-discipline pattern bsc-invariants reuses.
+  Apache-2.0.
+- hyperevm-safety — the sibling library targeting HyperEVM /
+  HyperCore boundary invariants. Apache-2.0.

@@ -1,0 +1,209 @@
+name: ci
+
+# bsc-invariants CI — v0.0.1 (Week-1 scaffold).
+#
+# Mirrors the hyperevm-safety CI pattern: a library-build + library-properties
+# pair for the M1 surface (PancakeSwap v3 P-1 / P-2 / P-3), plus path-gated
+# jobs for each M2 / M3 deliverable so each future harness flips its job from
+# `deferred` to `real-work-green` the moment its file lands. Composite Foundry
+# setup lives at `.github/actions/foundry-setup/`.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FOUNDRY_PROFILE: default
+
+defaults:
+  run:
+    # Workflows are designed to be moved to repo root on the public flip; until
+    # then they reference paths under experiments/bsc-invariants/. Each job
+    # explicitly `cd`s — this default just makes ad-hoc steps consistent.
+    working-directory: .
+
+jobs:
+  # M1 — library-build
+  library-build:
+    name: library-build (forge build src/ invariants/)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Foundry setup (pinned)
+        uses: ./.github/actions/foundry-setup
+        with:
+          build: "false"
+
+      - name: forge build src/ + invariants/
+        run: forge build --sizes
+
+  # M1 — library-properties-clean (P-1 / P-2 / P-3 against the clean reference)
+  library-properties-clean:
+    name: library-properties-clean (forge test invariants/)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: library-build
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Foundry setup (pinned)
+        uses: ./.github/actions/foundry-setup
+
+      - name: forge test --match-path invariants/*.t.sol (clean only)
+        run: |
+          set -euo pipefail
+          # --no-match-path excludes planted/ twins (M2). Foundry's * glob
+          # crosses directory separators, so without the exclusion any future
+          # planted-fires tests would contaminate this job.
+          forge test --match-path 'invariants/*.t.sol' \
+            --no-match-path 'invariants/planted/*' -vv
+
+  # M2 — PancakeSwap v3 P-1 planted-twin pair (clean-passes leg)
+  p1-feegrowth-clean-passes:
+    name: p1-feegrowth clean-passes (PancakeV3FeeGrowth.t.sol — no INVARIANT VIOLATED)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: library-build
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Detect P-1 planted twin wired (M2)
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f invariants/planted/PancakeV3FeeGrowth.planted.t.sol ]; then
+            echo "wired=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wired=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::M2 P-1 planted twin not yet landed; p1-feegrowth-clean-passes deferred."
+          fi
+
+      - name: Foundry setup (pinned)
+        if: steps.gate.outputs.wired == 'true'
+        uses: ./.github/actions/foundry-setup
+
+      - name: Clean leg — forge test PancakeV3FeeGrowth + assert no INVARIANT VIOLATED
+        if: steps.gate.outputs.wired == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          forge test --match-path 'invariants/PancakeV3FeeGrowth.t.sol' -vv 2>&1 | tee /tmp/p1-clean-out.txt
+          if grep -q "INVARIANT VIOLATED" /tmp/p1-clean-out.txt; then
+            echo "::error::P-1 clean leg produced INVARIANT VIOLATED — clean leg MUST pass silently."
+            exit 1
+          fi
+
+  # M2 — PancakeSwap v3 P-1 planted-twin pair (planted-fires leg)
+  p1-feegrowth-planted-fires:
+    name: p1-feegrowth planted-fires (PancakeV3FeeGrowth.planted.t.sol surfaces INVARIANT VIOLATED)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: library-build
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Detect P-1 planted twin wired (M2)
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f invariants/planted/PancakeV3FeeGrowth.planted.t.sol ]; then
+            echo "wired=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wired=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::M2 P-1 planted twin not yet landed; p1-feegrowth-planted-fires deferred."
+          fi
+
+      - name: Foundry setup (pinned)
+        if: steps.gate.outputs.wired == 'true'
+        uses: ./.github/actions/foundry-setup
+
+      - name: Planted leg — forge test MUST surface INVARIANT VIOLATED FeeGrowthMonotonicity
+        if: steps.gate.outputs.wired == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          forge test --match-path 'invariants/planted/PancakeV3FeeGrowth.planted.t.sol' -vv \
+            2>&1 | tee /tmp/p1-planted-out.txt
+          ec=${PIPESTATUS[0]}
+          set -e
+          if ! grep -q "INVARIANT VIOLATED" /tmp/p1-planted-out.txt; then
+            echo "::error::P-1 planted leg did NOT produce INVARIANT VIOLATED marker."
+            exit 1
+          fi
+          if [ "$ec" -eq 0 ]; then
+            echo "::error::P-1 planted leg exited 0 — expected non-zero from property revert."
+            exit 1
+          fi
+          echo "::notice::P-1 planted leg correctly surfaced INVARIANT VIOLATED and exited non-zero (ec=$ec)."
+
+  # M2 — Venus harness placeholder (path-gated)
+  venus-harness-build:
+    name: venus-harness-build (forge build venus/) — M2
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Detect Venus harness wired (M2)
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d src/venus ] || ls invariants/Venus*.t.sol >/dev/null 2>&1; then
+            echo "wired=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wired=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::M2 Venus harness not yet landed; venus-harness-build deferred."
+          fi
+
+      - name: Foundry setup (pinned)
+        if: steps.gate.outputs.wired == 'true'
+        uses: ./.github/actions/foundry-setup
+        with:
+          build: "true"
+
+  # M3 — Stargate-on-BSC harness placeholder (path-gated)
+  stargate-harness-build:
+    name: stargate-harness-build (forge build stargate/) — M3
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Detect Stargate harness wired (M3)
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d src/stargate ] || ls invariants/Stargate*.t.sol >/dev/null 2>&1; then
+            echo "wired=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wired=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::M3 Stargate harness not yet landed; stargate-harness-build deferred."
+          fi
+
+      - name: Foundry setup (pinned)
+        if: steps.gate.outputs.wired == 'true'
+        uses: ./.github/actions/foundry-setup
+        with:
+          build: "true"

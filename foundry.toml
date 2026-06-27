@@ -1,0 +1,43 @@
+# bsc-invariants — Foundry config
+#
+# Mirrors the hyperevm-safety convention: solc 0.8.28, CI-friendly fuzz
+# budgets, src/ for reference contracts, invariants/ for property tests.
+# A protocol's reference contract lives in src/; the paired property
+# bundle lives in invariants/.
+#
+# Recon Chimera is not yet wired (lands at M2). Until then,
+# `forge test` runs the unit + invariant tests under `invariants/`
+# directly against the references in `src/`.
+
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "invariants"
+
+solc_version = "0.8.28"
+optimizer = true
+optimizer_runs = 200
+via_ir = false
+
+remappings = [
+    "forge-std/=lib/forge-std/src/",
+]
+
+# Authoritative remappings above — do not walk lib/* for nested foundry.toml.
+auto_detect_remappings = false
+
+ffi = false
+
+[fuzz]
+# Modest local budget; nightly CI (M2) bumps for long campaigns.
+runs = 1000
+
+[invariant]
+runs = 256
+depth = 50
+fail_on_revert = false
+call_override = false
+dictionary_weight = 80
+include_storage = true
+include_push_bytes = true

@@ -1,0 +1,27 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Echidna / Medusa (M2)
+echidna-corpus/
+medusa-corpus/
+crytic-export/
+.campaign-out/
+
+# Halmos (deferred)
+halmos-cache/
+
+# Forge deps (managed by `forge install`; tags pinned in CI's foundry-setup action)
+lib/forge-std/
+lib/chimera/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+.env.local

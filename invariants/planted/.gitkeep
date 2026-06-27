@@ -1,0 +1,8 @@
+# M2 — planted-twin clean/planted CI pairs for P-1 / P-2 / P-3 land here:
+#   - PancakeV3FeeGrowth.planted.t.sol   (P-1, swap += for -= on the
+#                                          token0 fee-growth update)
+#   - PancakeV3TickBounds.planted.t.sol  (P-2 + P-3, drop the
+#                                          MIN/MAX `require` checks)
+#
+# Path-gated CI jobs in `.github/workflows/ci.yml` flip from `deferred`
+# to `real-work-green` the moment these files land.
