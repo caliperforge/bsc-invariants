@@ -1,4 +1,4 @@
-# bsc-invariants — Foundry config
+# bsc-invariants Foundry config
 #
 # Mirrors the hyperevm-safety convention: solc 0.8.28, CI-friendly fuzz
 # budgets, src/ for reference contracts, invariants/ for property tests.
@@ -24,7 +24,7 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
 ]
 
-# Authoritative remappings above — do not walk lib/* for nested foundry.toml.
+# Authoritative remappings above; do not walk lib/* for nested foundry.toml.
 auto_detect_remappings = false
 
 ffi = false
@@ -41,3 +41,17 @@ call_override = false
 dictionary_weight = 80
 include_storage = true
 include_push_bytes = true
+
+# Pinned formatter style. The hand-written multi-line argument layouts in
+# the references + tests (5-arg constructors, 4-arg simulateSwapStep
+# signatures, multi-line require/assertLe) are deliberately more readable
+# than the default forge-fmt collapse-to-one-line behavior at 100 chars.
+# Pinning here makes a future `forge fmt` rerun honor those layouts.
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+multiline_func_header = "all"
+quote_style = "double"
+number_underscore = "preserve"

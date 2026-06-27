@@ -6,7 +6,7 @@ import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {PancakeV3FeeGrowthOutsideRef} from "../src/PancakeV3FeeGrowthOutsideRef.sol";
 import {TickMath} from "../src/lib/TickMath.sol";
 
-/// @title PancakeV3FeeGrowthOutside — P-5 property: per-tick feeGrowthOutside
+/// @title PancakeV3FeeGrowthOutside: P-5 property: per-tick feeGrowthOutside
 ///        is conserved against feeGrowthGlobal.
 /// @notice SCOPE.md §1 P-5. For every initialized tick `t`:
 ///           - `feeGrowthOutside0X128[t] <= feeGrowthGlobal0X128`
@@ -51,7 +51,7 @@ contract PancakeV3FeeGrowthOutsideTest is StdInvariant, Test {
     }
 
     // ---------------------------------------------------------------------
-    // Stateful-fuzz invariant — outside <= global for every initialized tick.
+    // Stateful-fuzz invariant: outside <= global for every initialized tick.
     // ---------------------------------------------------------------------
 
     function invariant_feeGrowthOutside_bounded_byGlobal() public view {
@@ -85,7 +85,7 @@ contract PancakeV3FeeGrowthOutsideTest is StdInvariant, Test {
     }
 
     // ---------------------------------------------------------------------
-    // Unit-level properties — initialize, flip, and conservation.
+    // Unit-level properties: initialize, flip, and conservation.
     // ---------------------------------------------------------------------
 
     /// @notice Initialize at a tick BELOW current price seeds outside = global.
@@ -144,7 +144,7 @@ contract PancakeV3FeeGrowthOutsideTest is StdInvariant, Test {
         // tick. So the second cross flips TICK 0 (not initialized → no flip).
         // The TICK_UPPER outside stays at its post-first-flip value. The
         // involutive property in real v3 requires walking back across the
-        // SAME tick — that's the multi-cross walk (M2). For the destination-
+        // SAME tick: that's the multi-cross walk (M2). For the destination-
         // only minimal reference, we re-cross TICK_UPPER explicitly:
         pool.crossTick(TICK_UPPER);
         uint256 outsideAfter = pool.feeGrowthOutside0X128(TICK_UPPER);
@@ -172,7 +172,7 @@ contract PancakeV3FeeGrowthOutsideTest is StdInvariant, Test {
     }
 }
 
-/// @title FeeGrowthOutsideHandler — bounded handler for the conservation invariant.
+/// @title FeeGrowthOutsideHandler: bounded handler for the conservation invariant.
 /// @notice Drives `swapAccrue` and `crossTick` over the three initialized
 ///         ticks. Cross amounts are clamped to {LOWER, UPPER, FAR_UPPER, 0}
 ///         so the fuzzer exercises the flip rule on real initialized ticks.

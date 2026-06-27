@@ -16,7 +16,7 @@ The bsc-invariants library is built on the following upstream work. Each
 attribution carries the pinned version it currently targets; this file
 is updated as pins move.
 
-- Uniswap v3 — `Uniswap/v3-core`, GPL-2.0-or-later. PancakeSwap v3 is a
+- Uniswap v3: `Uniswap/v3-core`, GPL-2.0-or-later. PancakeSwap v3 is a
   1:1 fork of Uniswap v3's core math (`TickMath`, `SqrtPriceMath`,
   `SwapMath`, fee-growth accounting). The constants reproduced in
   `src/lib/TickMath.sol` (MIN_TICK, MAX_TICK, MIN_SQRT_RATIO,
@@ -27,7 +27,7 @@ is updated as pins move.
   + the file header will name it explicitly and the repo's license
   posture will be re-evaluated against GPL-2.0-or-later compatibility.
 
-- PancakeSwap v3 — `pancakeswap/pancake-v3-contracts`, GPL-2.0-or-later
+- PancakeSwap v3: `pancakeswap/pancake-v3-contracts`, GPL-2.0-or-later
   for `projects/v3-core`. The reference contract in
   `src/PancakeV3FeeAccountingRef.sol` is a same-source twin minimal to
   the fee-growth + tick-bound invariants under test; it is NOT a fork
@@ -36,14 +36,14 @@ is updated as pins move.
   v3 whitepaper (the canonical source for the fee-growth-only-grows
   property).
 
-- CaliperForge hyperevm-safety — Apache-2.0. The Foundry config, the
+- CaliperForge hyperevm-safety: Apache-2.0. The Foundry config, the
   composite Foundry-setup GitHub Action, the path-gated CI pattern,
   and the planted-twin discipline are ported 1:1 from
   `experiments/hyperevm-safety/`. The `bsc-invariants` repo extends
   the discipline to BNB Smart Chain DeFi protocols (PancakeSwap v3 at
   M1; Venus + Stargate planned at M2 / M3).
 
-- CaliperForge chimera-template-pack — Apache-2.0. Foundry + Recon
+- CaliperForge chimera-template-pack: Apache-2.0. Foundry + Recon
   Chimera + Echidna + Medusa scaffold. `bsc-invariants` reuses the
   composite-action pin pattern + the seeded-fuzz configuration. The
   full Chimera `Properties.sol` bundle is M2 work (not in the Week-1
@@ -53,20 +53,20 @@ is updated as pins move.
 Toolchain authors
 ------------------------------------------------------------------------
 
-- Foundry (forge, anvil, cast) — Foundry-rs.
-- Recon Chimera — Recon.
-- Echidna — Trail of Bits.
-- Medusa — Trail of Bits.
-- Halmos — a16z crypto.
+- Foundry (forge, anvil, cast): Foundry-rs.
+- Recon Chimera: Recon.
+- Echidna: Trail of Bits.
+- Medusa: Trail of Bits.
+- Halmos: a16z crypto.
 
 ------------------------------------------------------------------------
 The CaliperForge harnesses this library extends
 ------------------------------------------------------------------------
 
-- chimera-template-pack — the EVM Foundry + Recon Chimera scaffold this
+- chimera-template-pack: the EVM Foundry + Recon Chimera scaffold this
   library is built on top of. Apache-2.0.
-- invariant-atlas — the cross-VM exploit-to-invariant case set that
+- invariant-atlas: the cross-VM exploit-to-invariant case set that
   established the twin-discipline pattern bsc-invariants reuses.
   Apache-2.0.
-- hyperevm-safety — the sibling library targeting HyperEVM /
+- hyperevm-safety: the sibling library targeting HyperEVM /
   HyperCore boundary invariants. Apache-2.0.

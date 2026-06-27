@@ -35,7 +35,13 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        forge install --no-commit "foundry-rs/forge-std@${{ inputs.forge-std-version }}" || true
+        # Idempotency guard: skip the install when forge-std is already on
+        # disk (caches/re-runs). Real install failures (rate limits, moved
+        # pins) surface here instead of being masked into a later opaque
+        # remappings error.
+        if [ ! -d lib/forge-std ]; then
+          forge install --no-commit "foundry-rs/forge-std@${{ inputs.forge-std-version }}"
+        fi
 
     - name: forge build
       if: ${{ inputs.build == 'true' }}

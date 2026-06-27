@@ -6,11 +6,11 @@ import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {PancakeV3FeeAccountingRef} from "../src/PancakeV3FeeAccountingRef.sol";
 import {TickMath} from "../src/lib/TickMath.sol";
 
-/// @title PancakeV3FeeGrowth — P-1 property: feeGrowthGlobalXX128 is non-decreasing.
+/// @title PancakeV3FeeGrowth, P-1 property: feeGrowthGlobalXX128 is non-decreasing.
 /// @notice SCOPE.md §1 P-1. After any sequence of `simulateSwapStep` calls
 ///         the reference's `feeGrowthGlobal0X128` and `feeGrowthGlobal1X128`
 ///         MUST be ≥ their values before the operation. This is the
-///         canonical Uniswap v3 / PancakeSwap v3 accounting invariant —
+///         canonical Uniswap v3 / PancakeSwap v3 accounting invariant;
 ///         the bug class this catches is a forked v3 pool that mis-ports
 ///         the `feeGrowthGlobalXX128 += FullMath.mulDiv(...)` increment
 ///         (e.g., signed-conversion bug, decrement on a refund path,
@@ -27,7 +27,7 @@ contract PancakeV3FeeGrowthTest is StdInvariant, Test {
     PancakeV3FeeAccountingRef internal pool;
     FeeGrowthHandler internal handler;
 
-    uint24 internal constant FEE_PIPS = 500;             // 0.05% — PancakeSwap v3 default low tier
+    uint24 internal constant FEE_PIPS = 500;             // 0.05%, PancakeSwap v3 default low tier
     uint128 internal constant INITIAL_LIQUIDITY = 1e18;  // 1.0 unit of liquidity, scaled
     uint160 internal constant INITIAL_SQRT_PRICE = 79228162514264337593543950336; // sqrtPrice at tick 0
     int24 internal constant INITIAL_TICK = 0;
@@ -47,7 +47,7 @@ contract PancakeV3FeeGrowthTest is StdInvariant, Test {
     }
 
     // ---------------------------------------------------------------------
-    // Stateful-fuzz invariant — the load-bearing property.
+    // Stateful-fuzz invariant: the load-bearing property.
     // ---------------------------------------------------------------------
 
     /// @notice After any sequence of `swapStep` calls, fee growth on each
@@ -67,7 +67,7 @@ contract PancakeV3FeeGrowthTest is StdInvariant, Test {
     }
 
     // ---------------------------------------------------------------------
-    // Unit-level properties — boundary + deterministic checks.
+    // Unit-level properties: boundary + deterministic checks.
     // ---------------------------------------------------------------------
 
     /// @notice A non-zero swap on the token0 side strictly increases
@@ -129,7 +129,7 @@ contract PancakeV3FeeGrowthTest is StdInvariant, Test {
     }
 }
 
-/// @title FeeGrowthHandler — bounded handler for the stateful-fuzz invariant.
+/// @title FeeGrowthHandler: bounded handler for the stateful-fuzz invariant.
 /// @notice Wraps `PancakeV3FeeAccountingRef.simulateSwapStep` so the fuzzer
 ///         exercises in-bound inputs. The handler shadows the last-observed
 ///         fee-growth on each side; the invariant compares pool storage to
@@ -171,7 +171,7 @@ contract FeeGrowthHandler is Test {
         lastFeeGrowthGlobal1X128 = pool.feeGrowthGlobal1X128();
 
         try pool.simulateSwapStep(zeroForOne, amountIn, tickDelta, sqrtDelta) {
-            // Successful step — fee growth either increased or stayed flat
+            // Successful step; fee growth either increased or stayed flat
             // on the touched side. Either is admitted by the invariant.
         } catch {
             // Bound-violating step reverted at the pool. The shadow stays

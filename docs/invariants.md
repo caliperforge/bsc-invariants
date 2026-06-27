@@ -1,11 +1,11 @@
-# Invariants — bsc-invariants (v0.0.1)
+# Invariants: bsc-invariants (v0.0.2)
 
 This document is the prose source of truth for each invariant in the
 library. The in-code NatSpec on the property file is the precise
 mechanical statement; this doc explains the bug class, the upstream
 citation, and the test plan.
 
-## P-1 — FeeGrowthGlobalMonotonicity
+## P-1. FeeGrowthGlobalMonotonicity
 
 **Statement.** After any sequence of swap operations on a PancakeSwap
 v3 pool, `feeGrowthGlobal0X128` and `feeGrowthGlobal1X128` are
@@ -19,7 +19,7 @@ canonical update is:
 state.feeGrowthGlobalX128 += FullMath.mulDiv(step.feeAmount, FixedPoint128.Q128, state.liquidity);
 ```
 
-(See Uniswap v3 `UniswapV3Pool.sol::swap` — function body, the inner
+(See Uniswap v3 `UniswapV3Pool.sol::swap`, function body, the inner
 loop step. PancakeSwap v3 ports this 1:1.) The `+=` is the load-bearing
 operation; any forked pool that rewrites this loop is at risk of
 inverting the sign (the common port bug) or accidentally subtracting
@@ -36,19 +36,19 @@ withdrawProtocolFee accidentally touching `feeGrowthGlobal` instead of
 `protocolFees`.
 
 **Test plan.**
-- `test_property_swapToken0_increasesFee0_onlyFee0` — deterministic
+- `test_property_swapToken0_increasesFee0_onlyFee0`: deterministic
   unit boundary.
-- `test_property_swapToken1_increasesFee1_onlyFee1` — symmetric.
-- `test_property_zeroAmount_noFeeChange` — no spurious accrual on
+- `test_property_swapToken1_increasesFee1_onlyFee1`: symmetric.
+- `test_property_zeroAmount_noFeeChange`: no spurious accrual on
   empty swaps.
-- `testFuzz_property_nonZeroAmount_strictIncrease` — fuzz the
+- `testFuzz_property_nonZeroAmount_strictIncrease`: fuzz the
   amount-in.
-- `invariant_feeGrowth_neverDecreases` — stateful-fuzz invariant
+- `invariant_feeGrowth_neverDecreases`: stateful-fuzz invariant
   comparing pool state against a shadow last-observed value, so a
   single decrement trips the marker on the very next pass.
 
-**Planted-twin twin (LANDED — Week 2).** `invariants/planted/PancakeV3FeeGrowth.planted.t.sol`
-instantiates `BrokenPancakeV3FeeAccountingRef` — same interface as the
+**Planted-twin twin (LANDED, Week 2).** `invariants/planted/PancakeV3FeeGrowth.planted.t.sol`
+instantiates `BrokenPancakeV3FeeAccountingRef`: same interface as the
 clean reference with one localized hunk: `feeGrowthGlobal0X128 =
 deltaX128` (assignment) instead of the canonical `+=` on the
 `zeroForOne` branch. The clean leg
@@ -60,7 +60,7 @@ check in `.github/workflows/ci.yml::p1-feegrowth-*`. Receipts in
 
 ---
 
-## P-2 — TickInBounds
+## P-2. TickInBounds
 
 **Statement.** After any operation, the pool's `tick` lies in
 `[MIN_TICK, MAX_TICK] = [-887272, 887272]`.
@@ -82,7 +82,7 @@ SwapMath's tick-cross loop. The downstream effect is a pool whose
 the pool or producing garbage prices.
 
 **Test plan.** See `invariants/PancakeV3TickBounds.t.sol` § P-2
-section — boundary tests at MIN, MAX, MIN-1, MAX+1, plus a fuzz pass
+section: boundary tests at MIN, MAX, MIN-1, MAX+1, plus a fuzz pass
 on `tickDelta`.
 
 **Planted-twin twin (M2).** Same pattern as P-1: the planted leg
@@ -91,10 +91,10 @@ from `simulateSwapStep`.
 
 ---
 
-## P-3 — SqrtPriceX96InBounds
+## P-3. SqrtPriceX96InBounds
 
 **Statement.** After any operation, the pool's `sqrtPriceX96` lies in
-`[MIN_SQRT_RATIO, MAX_SQRT_RATIO)`. The upper bound is **strict** —
+`[MIN_SQRT_RATIO, MAX_SQRT_RATIO)`. The upper bound is **strict**:
 `MAX_SQRT_RATIO` itself is rejected; the largest admitted value is
 `MAX_SQRT_RATIO - 1`.
 
@@ -112,7 +112,7 @@ out-of-range sqrtPriceX96 makes subsequent `getTickAtSqrtRatio` reads
 return undefined values.
 
 **Test plan.** See `invariants/PancakeV3TickBounds.t.sol` § P-3
-section — boundary tests at MIN, MAX-1, MIN-1, MAX.
+section: boundary tests at MIN, MAX-1, MIN-1, MAX.
 
 **Planted-twin twin (M2).** The planted leg relaxes the
 `require(sqrt < MAX_SQRT_RATIO)` to `require(sqrt <= MAX_SQRT_RATIO)`
@@ -122,7 +122,7 @@ to admit the off-by-one.
 
 ---
 
-## P-4 — LiquidityEventConsistency
+## P-4. LiquidityEventConsistency
 
 **Statement.** After any `mint` / `burn` operation on a position
 `[tickLower, tickUpper)` with amount `Δ`:
@@ -139,12 +139,12 @@ PancakeSwap v3 mirror) routes a position update through three steps:
 (1) update `Tick.update` for both boundaries, (2) update
 `Position.update`, (3) IF the current tick is within the position's
 range, update the pool's active `liquidity` by `liquidityDelta`. The
-"in-range" check is the load-bearing branch — any fork that mis-ports
+"in-range" check is the load-bearing branch: any fork that mis-ports
 it (e.g., applies the delta unconditionally, or applies it on the
 wrong sign, or applies it for an off-by-one `tickUpper` boundary)
 desyncs active liquidity from the set of currently-active LPs.
 
-**Citation.** Uniswap v3 `UniswapV3Pool.sol::_modifyPosition` —
+**Citation.** Uniswap v3 `UniswapV3Pool.sol::_modifyPosition`,
 function body, the
 `if (params.tickLower <= state.tick && state.tick < params.tickUpper)`
 branch. PancakeSwap v3 mirror at the same path.
@@ -160,22 +160,22 @@ The downstream effect is swap fee accrual to LPs that have no
 liquidity in range, or non-accrual to LPs that do.
 
 **Test plan.** `invariants/PancakeV3LiquidityEvents.t.sol`:
-- `test_property_mint_inRange_incrementsByDelta` — boundary unit.
-- `test_property_mint_outOfRange_leavesActiveUnchanged` — out-of-range case.
-- `test_property_burn_inRange_decrementsByDelta` — symmetric burn.
-- `test_property_burn_outOfRange_leavesActiveUnchanged` — out-of-range burn.
-- `test_property_crossTick_thenMint_inRange_activates` — cross-then-mint sanity.
-- `test_property_positionLiquidity_alwaysIncrementsOnMint` — position-side accounting.
-- `testFuzz_property_mint_inRange_incrementsByDelta` — fuzz amount.
-- `invariant_activeLiquidity_equalsNetMintMinusBurn_inRange` — stateful fuzz comparing pool active liquidity to a sum-of-mints-minus-burns shadow under a clamped tick band.
+- `test_property_mint_inRange_incrementsByDelta`: boundary unit.
+- `test_property_mint_outOfRange_leavesActiveUnchanged`: out-of-range case.
+- `test_property_burn_inRange_decrementsByDelta`: symmetric burn.
+- `test_property_burn_outOfRange_leavesActiveUnchanged`: out-of-range burn.
+- `test_property_crossTick_thenMint_inRange_activates`: cross-then-mint sanity.
+- `test_property_positionLiquidity_alwaysIncrementsOnMint`: position-side accounting.
+- `testFuzz_property_mint_inRange_incrementsByDelta`: fuzz amount.
+- `invariant_activeLiquidity_equalsNetMintMinusBurn_inRange`: stateful fuzz comparing pool active liquidity to a sum-of-mints-minus-burns shadow under a clamped tick band.
 
-**Planted-twin twin (M2 — Week 3 work).** Not yet landed; the planted
+**Planted-twin twin (M2, Week 3 work).** Not yet landed; the planted
 hunk will drop the `if (inRange)` check from `mint` so out-of-range
 mints leak into active liquidity.
 
 ---
 
-## P-5 — FeeGrowthOutsideConsistency
+## P-5. FeeGrowthOutsideConsistency
 
 **Statement.** For every initialized tick `t`, at all times:
 
@@ -194,7 +194,7 @@ which is non-negative and bounded by global.
 
 **What this models (and what it does not).** This is the
 **increment-only conservation form** of P-5. Real Uniswap v3 stores
-both global and outside as `uint256` and admits wrap-around — the
+both global and outside as `uint256` and admits wrap-around: the
 `(global − outside)` subtraction recovers position-local growth
 modulo 2^256, and `outside > global` is a legitimate state mid-wrap.
 The increment-only form is strictly conservative for any swap
@@ -211,7 +211,7 @@ mis-ports `Tick.cross` or `Tick.update` desyncs this computation and
 LPs over-withdraw or under-withdraw.
 
 **Citation.** Uniswap v3 `Tick.sol::update` (the
-`tickCurrent >= tick` branch — the init rule) and
+`tickCurrent >= tick` branch, the init rule) and
 `Tick.sol::cross` (the flip rule). PancakeSwap v3 mirror at the
 same path.
 
@@ -224,38 +224,38 @@ Also catches a fork whose `Tick.update` initializes outside on the
 wrong branch of `tickCurrent >= tick`.
 
 **Test plan.** `invariants/PancakeV3FeeGrowthOutside.t.sol`:
-- `test_property_initialize_belowCurrent_seedsOutsideEqualsGlobal` — init below current.
-- `test_property_initialize_aboveCurrent_seedsOutsideZero` — init above current.
-- `test_property_crossUp_flipsOutside_toGlobalMinusOldOutside` — flip rule.
-- `test_property_doubleCross_isInvolutive` — double-flip restores original.
-- `test_property_outside_neverExceedsGlobal_afterAccrues` — bound after accrues.
-- `testFuzz_property_outside_boundedAfterSwap` — fuzz swap amounts preserve bound.
-- `invariant_feeGrowthOutside_bounded_byGlobal` — stateful fuzz over three initialized ticks under accrue + cross fuzzing.
+- `test_property_initialize_belowCurrent_seedsOutsideEqualsGlobal`: init below current.
+- `test_property_initialize_aboveCurrent_seedsOutsideZero`: init above current.
+- `test_property_crossUp_flipsOutside_toGlobalMinusOldOutside`: flip rule.
+- `test_property_doubleCross_isInvolutive`: double-flip restores original.
+- `test_property_outside_neverExceedsGlobal_afterAccrues`: bound after accrues.
+- `testFuzz_property_outside_boundedAfterSwap`: fuzz swap amounts preserve bound.
+- `invariant_feeGrowthOutside_bounded_byGlobal`: stateful fuzz over three initialized ticks under accrue + cross fuzzing.
 
-**Planted-twin twin (M2 — Week 3 work).** Not yet landed; the planted
+**Planted-twin twin (M2, Week 3 work).** Not yet landed; the planted
 hunk will invert the flip direction (`outside − global` instead of
 `global − outside`) so the conservation property fires on the first
 crossing.
 
 ---
 
-## What is M2 (next milestone, partial — P-4 + P-5 landed in Week 2)
+## What is M2 (next milestone, partial; P-4 + P-5 landed in Week 2)
 
-- **P-4 — LiquidityEventConsistency.** ✅ Landed Week 2 (above).
-- **P-5 — FeeGrowthOutsideConsistency** (increment-only form). ✅ Landed Week 2 (above); wrap-around variant deferred to Week 3.
-- **P-6 — ProtocolFeeAccrualBound.** `protocolFees0/1` storage grows
+- **P-4 LiquidityEventConsistency.** ✅ Landed Week 2 (above).
+- **P-5 FeeGrowthOutsideConsistency** (increment-only form). ✅ Landed Week 2 (above); wrap-around variant deferred to Week 3.
+- **P-6 ProtocolFeeAccrualBound.** `protocolFees0/1` storage grows
   by exactly the configured `feeProtocol` fraction of swap fees;
   `feeGrowthGlobal` is correspondingly reduced. Week 3.
-- **P-7 — ObservationCardinalityMonotonicity.** Oracle observation
+- **P-7 ObservationCardinalityMonotonicity.** Oracle observation
   cardinality is monotonic non-decreasing across
   `increaseObservationCardinalityNext`. Week 3.
 - **Planted-twin CI pair for P-1.** ✅ Landed Week 2.
 - **Planted-twin CI pairs for P-2 + P-3.** Week 3.
 - **BSC-mainnet fork tests** at a pinned block. Week 3.
 
-## What is M3 (not in v0.0.1)
+## What is M3 (not in v0.0.2)
 
-- **V-1 .. V-4 — Venus lending invariants.** See `SCOPE.md` §1.
-- **S-1 .. S-3 — Stargate-on-BSC bridge invariants.**
-- **A-1 .. A-2 — BNB Chain AI agent-registry harness** (gated on the
+- **V-1 .. V-4 Venus lending invariants.** See `SCOPE.md` §1.
+- **S-1 .. S-3 Stargate-on-BSC bridge invariants.**
+- **A-1 .. A-2 BNB Chain AI agent-registry harness** (gated on the
   spec landing publicly per 2026 Tech Roadmap).

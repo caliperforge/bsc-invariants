@@ -1,4 +1,4 @@
-# Security Policy — bsc-invariants
+# Security Policy: bsc-invariants
 
 ## Scope
 

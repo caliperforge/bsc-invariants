@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
 import {TickMath} from "../../src/lib/TickMath.sol";
 
-/// @title PancakeV3FeeGrowth (planted) — P-1 planted twin: assignment-instead-of-accumulation
+/// @title PancakeV3FeeGrowth (planted): P-1 planted twin: assignment-instead-of-accumulation
 ///        breaks fee-growth monotonicity and fires
 ///        `INVARIANT VIOLATED feeGrowth_neverDecreases`.
 ///
@@ -34,7 +34,7 @@ import {TickMath} from "../../src/lib/TickMath.sol";
 ///      (the `+=` → `=` swap on the zeroForOne fee0 path).
 
 // ---------------------------------------------------------------------------
-// Planted reference — same interface + storage as src/PancakeV3FeeAccountingRef,
+// Planted reference: same interface + storage as src/PancakeV3FeeAccountingRef,
 // with the single planted hunk inline. Lives in the test file (NOT in src/)
 // because it is a documented bug-class model rather than a production
 // reference. Mirrors the hyperevm-safety planted convention.
@@ -94,13 +94,15 @@ contract BrokenPancakeV3FeeAccountingRef {
             }
         }
 
+        // forge-lint: disable-next-line(unsafe-typecast) // safe: the require checks above pin newTickSigned to [MIN_TICK, MAX_TICK], which fits int24.
         tick = int24(newTickSigned);
+        // forge-lint: disable-next-line(unsafe-typecast) // safe: the require checks above pin newSqrtSigned to [MIN_SQRT_RATIO, MAX_SQRT_RATIO), which is non-negative and fits uint160.
         sqrtPriceX96 = uint160(uint256(newSqrtSigned));
     }
 }
 
 // ---------------------------------------------------------------------------
-// Planted test — the property fires deterministically. Two witnesses: a
+// Planted test: the property fires deterministically. Two witnesses: a
 // fixed-input boundary test and a fuzz sweep over the decreasing-amount
 // surface.
 // ---------------------------------------------------------------------------
@@ -122,7 +124,7 @@ contract PancakeV3FeeGrowthPlantedTest is Test {
     /// @notice Deterministic witness. First swap with a large amountIn seeds
     ///         `feeGrowthGlobal0X128` to a large value; a second swap with a
     ///         smaller amountIn overwrites it (instead of accumulating),
-    ///         producing a strict decrease — the property failure.
+    ///         producing a strict decrease: the property failure.
     function test_property_planted_zeroForOne_decreasingAmount_invariantViolated() public {
         uint256 amount1 = 1e24;
         uint256 amount2 = 1e22;
@@ -145,7 +147,7 @@ contract PancakeV3FeeGrowthPlantedTest is Test {
     }
 
     /// @notice Fuzz: any pair (amount1, amount2) with amount1 > amount2 ≥ 2000
-    ///         produces a strictly decreasing feeGrowthGlobal0X128 — the
+    ///         produces a strictly decreasing feeGrowthGlobal0X128: the
     ///         planted bug magnifies the gap by feePips × Q128 / liquidity,
     ///         so the property always fires.
     function testFuzz_property_planted_zeroForOne_decreasingAmount_invariantViolated(

@@ -1,0 +1,34 @@
+No files changed, compilation skipped
+
+Ran 2 tests for invariants/planted/PancakeV3FeeGrowth.planted.t.sol:PancakeV3FeeGrowthPlantedTest
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases; counterexample: calldata=0x2193b6fd0000000000000000000000000000000000000000000000008c553ed1a0c67a210000000000000000000000000000000000000000000000000000000000000001 args=[10112057608396765729 [1.011e19], 1]] testFuzz_property_planted_zeroForOne_decreasingAmount_invariantViolated(uint128,uint128) (runs: 6, μ: 38386, ~: 38386)
+Logs:
+  INVARIANT VIOLATED feeGrowth_neverDecreases (token0)
+    amount1                = 10112057608396765729
+    feeGrowthGlobal0X128_1 = 1720477448713067558496833228476003723
+    amount2                = 2000
+    feeGrowthGlobal0X128_2 = 340282366920938463463
+
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases] test_property_planted_zeroForOne_decreasingAmount_invariantViolated() (gas: 44038)
+Logs:
+  INVARIANT VIOLATED feeGrowth_neverDecreases (token0)
+    amount1                = 1000000000000000000000000
+    feeGrowthGlobal0X128_1 = 170141183460469231731687303715884105728000
+    amount2                = 10000000000000000000000
+    feeGrowthGlobal0X128_2 = 1701411834604692317316873037158841057280
+    (planted bug: `=` instead of `+=` on the zeroForOne fee0 path)
+
+Suite result: FAILED. 0 passed; 2 failed; 0 skipped; finished in 3.68ms (3.54ms CPU time)
+
+Ran 1 test suite in 5.84ms (3.68ms CPU time): 0 tests passed, 2 failed, 0 skipped (2 total tests)
+
+Failing tests:
+Encountered 2 failing tests in invariants/planted/PancakeV3FeeGrowth.planted.t.sol:PancakeV3FeeGrowthPlantedTest
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases; counterexample: calldata=0x2193b6fd0000000000000000000000000000000000000000000000008c553ed1a0c67a210000000000000000000000000000000000000000000000000000000000000001 args=[10112057608396765729 [1.011e19], 1]] testFuzz_property_planted_zeroForOne_decreasingAmount_invariantViolated(uint128,uint128) (runs: 6, μ: 38386, ~: 38386)
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases] test_property_planted_zeroForOne_decreasingAmount_invariantViolated() (gas: 44038)
+
+Encountered a total of 2 failing tests, 0 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 2 failed tests
+
+Fuzz seed: 0xe044cbf14491586ba90815383a6eff90415974f3c7405f5e18a041541673cf06 (use `--fuzz-seed` to reproduce)

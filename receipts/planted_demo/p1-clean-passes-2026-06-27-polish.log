@@ -1,0 +1,18 @@
+No files changed, compilation skipped
+
+Ran 5 tests for invariants/PancakeV3FeeGrowth.t.sol:PancakeV3FeeGrowthTest
+[PASS] invariant_feeGrowth_neverDecreases() (runs: 256, calls: 12800, reverts: 0)
+
+╭------------------+----------+-------+---------+----------╮
+| Contract         | Selector | Calls | Reverts | Discards |
++==========================================================+
+| FeeGrowthHandler | swapStep | 12800 | 0       | 0        |
+╰------------------+----------+-------+---------+----------╯
+
+[PASS] testFuzz_property_nonZeroAmount_strictIncrease(uint128,bool) (runs: 1000, μ: 45204, ~: 45226)
+[PASS] test_property_swapToken0_increasesFee0_onlyFee0() (gas: 45839)
+[PASS] test_property_swapToken1_increasesFee1_onlyFee1() (gas: 45804)
+[PASS] test_property_zeroAmount_noFeeChange() (gas: 28437)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 984.04ms (995.57ms CPU time)
+
+Ran 1 test suite in 984.72ms (984.04ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)

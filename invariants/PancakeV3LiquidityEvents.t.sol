@@ -6,7 +6,7 @@ import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {PancakeV3LiquidityEventsRef} from "../src/PancakeV3LiquidityEventsRef.sol";
 import {TickMath} from "../src/lib/TickMath.sol";
 
-/// @title PancakeV3LiquidityEvents — P-4 property: mint/burn updates active liquidity
+/// @title PancakeV3LiquidityEvents: P-4 property: mint/burn updates active liquidity
 ///        by exactly ±delta for in-range positions; leaves it unchanged otherwise.
 /// @notice SCOPE.md §1 P-4. After any mint/burn operation on a position
 ///         `[tickLower, tickUpper)`:
@@ -17,7 +17,7 @@ import {TickMath} from "../src/lib/TickMath.sol";
 ///         In both cases, the position's stored liquidity updates by ±amount.
 ///
 ///         The bug class P-4 catches: a forked v3 pool whose
-///         `_modifyPosition` mis-routes the active-liquidity update — e.g.,
+///         `_modifyPosition` mis-routes the active-liquidity update: e.g.,
 ///         updates active `liquidity` for out-of-range positions, fails to
 ///         update it for in-range, or mis-applies the sign.
 contract PancakeV3LiquidityEventsTest is StdInvariant, Test {
@@ -43,7 +43,7 @@ contract PancakeV3LiquidityEventsTest is StdInvariant, Test {
     }
 
     // ---------------------------------------------------------------------
-    // Stateful-fuzz invariant — sum-of-positions == active-liquidity when all
+    // Stateful-fuzz invariant: sum-of-positions == active-liquidity when all
     // positions are in-range; the handler restricts to a single in-range
     // band to keep the invariant tractable.
     // ---------------------------------------------------------------------
@@ -69,7 +69,7 @@ contract PancakeV3LiquidityEventsTest is StdInvariant, Test {
     }
 
     // ---------------------------------------------------------------------
-    // Unit-level properties — deterministic boundary checks for the canonical
+    // Unit-level properties: deterministic boundary checks for the canonical
     // ±delta rule.
     // ---------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ contract PancakeV3LiquidityEventsTest is StdInvariant, Test {
         // Cross tick into the range.
         pool.crossTick(150);
 
-        // Now mint again — should activate.
+        // Now mint again; should activate.
         pool.mint(ALICE, 100, 200, 2e18);
         assertEq(pool.liquidity(), 2e18, "post-cross in-range mint did not activate");
     }
@@ -137,7 +137,7 @@ contract PancakeV3LiquidityEventsTest is StdInvariant, Test {
     }
 }
 
-/// @title LiquidityHandler — bounded handler for the stateful-fuzz invariant.
+/// @title LiquidityHandler: bounded handler for the stateful-fuzz invariant.
 /// @notice Restricts mint/burn to a single in-range band and tracks the net
 ///         minted amount as a shadow. The invariant compares pool active
 ///         liquidity to this shadow; any forked-pool bug that
@@ -169,6 +169,7 @@ contract LiquidityHandler is Test {
     function burnBounded(uint128 rawAmount) external {
         if (netMintedInBand == 0) return;
         uint256 cap = netMintedInBand > type(uint128).max ? type(uint128).max : netMintedInBand;
+        // forge-lint: disable-next-line(unsafe-typecast) // safe: cap is bounded above by type(uint128).max, so `% cap` fits uint128.
         uint128 amount = uint128(uint256(rawAmount) % cap);
         if (amount == 0) amount = 1;
         // Defensive: if amount somehow exceeds position storage (it shouldn't
@@ -177,7 +178,7 @@ contract LiquidityHandler is Test {
         try pool.burn(OWNER, BAND_LOWER, BAND_UPPER, amount) {
             netMintedInBand -= amount;
         } catch {
-            // Revert path — shadow unchanged.
+            // Revert path; shadow unchanged.
         }
     }
 

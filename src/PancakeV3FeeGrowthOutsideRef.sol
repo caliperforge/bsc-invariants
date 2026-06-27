@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 import {TickMath} from "./lib/TickMath.sol";
 
-/// @title PancakeV3FeeGrowthOutsideRef — minimal v3 per-tick feeGrowthOutside reference.
+/// @title PancakeV3FeeGrowthOutsideRef: minimal v3 per-tick feeGrowthOutside reference.
 /// @notice A same-source twin minimal to the P-5 FeeGrowthOutsideConsistency
 ///         invariant (SCOPE.md §1 P-5). Models the per-tick
 ///         `feeGrowthOutside0/1X128` state and the canonical Uniswap v3 /
@@ -11,7 +11,7 @@ import {TickMath} from "./lib/TickMath.sol";
 ///
 ///         1. On tick initialization: if `currentTick >= t`,
 ///            `feeGrowthOutside[t] = feeGrowthGlobal`; else `feeGrowthOutside[t] = 0`.
-///            (See `Tick.update` in Uniswap v3 — the
+///            (See `Tick.update` in Uniswap v3, the
 ///            `tickCurrent >= tick` branch.)
 ///
 ///         2. On tick cross: `feeGrowthOutside[t] = feeGrowthGlobal - feeGrowthOutside[t]`.
@@ -22,7 +22,7 @@ import {TickMath} from "./lib/TickMath.sol";
 ///         This is the increment-only conservation form; real v3 admits
 ///         wrap-around on `feeGrowthGlobal` and the `(global - outside)`
 ///         subtraction recovers position-local growth modulo 2^256. Modelling
-///         the wrap is documented in `docs/invariants.md` P-5 — for the M1
+///         the wrap is documented in `docs/invariants.md` P-5; for the M1
 ///         + M2 ranges of swap amounts the increment-only reference is
 ///         strictly conservative.
 ///
@@ -105,7 +105,7 @@ contract PancakeV3FeeGrowthOutsideRef {
 
     /// @notice Accrue swap fees to the global (does not touch any tick's
     ///         outside). Mirrors the same `+=` rule as
-    ///         `PancakeV3FeeAccountingRef.simulateSwapStep` — kept separate
+    ///         `PancakeV3FeeAccountingRef.simulateSwapStep`, kept separate
     ///         from the cross operation so the P-5 surface is exercised
     ///         independently of P-1.
     function swapAccrue(bool zeroForOne, uint256 amountIn) external {
@@ -126,7 +126,7 @@ contract PancakeV3FeeGrowthOutsideRef {
     /// @notice Cross from the current tick to `newTick`. For each initialized
     ///         tick strictly between them (and including `newTick` per the
     ///         direction), flip `feeGrowthOutside`. This minimal reference
-    ///         walks only the destination tick — sufficient to exercise the
+    ///         walks only the destination tick: sufficient to exercise the
     ///         flip rule deterministically; the multi-cross walk is M2
     ///         work and is not the P-5 conservation property.
     function crossTick(int24 newTick) external {
@@ -161,7 +161,7 @@ contract PancakeV3FeeGrowthOutsideRef {
     // Views (read helpers for the property tests)
     // ---------------------------------------------------------------------
 
-    /// @notice The "below" fee growth for tick `t` — fees accrued while the
+    /// @notice The "below" fee growth for tick `t`: fees accrued while the
     ///         current tick was at or above `t`. From Uniswap v3 `Tick.sol`.
     function feeGrowthBelow0X128(int24 t) external view returns (uint256) {
         if (tick >= t) {
@@ -170,7 +170,7 @@ contract PancakeV3FeeGrowthOutsideRef {
         return feeGrowthGlobal0X128 - feeGrowthOutside0X128[t];
     }
 
-    /// @notice The "above" fee growth for tick `t` — fees accrued while the
+    /// @notice The "above" fee growth for tick `t`: fees accrued while the
     ///         current tick was strictly below `t`.
     function feeGrowthAbove0X128(int24 t) external view returns (uint256) {
         if (tick < t) {

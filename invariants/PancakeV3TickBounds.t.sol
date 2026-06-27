@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {PancakeV3FeeAccountingRef} from "../src/PancakeV3FeeAccountingRef.sol";
 import {TickMath} from "../src/lib/TickMath.sol";
 
-/// @title PancakeV3TickBounds — P-2 + P-3 properties: tick + sqrtPriceX96 stay in v3 address space.
+/// @title PancakeV3TickBounds: P-2 + P-3 properties: tick + sqrtPriceX96 stay in v3 address space.
 /// @notice SCOPE.md §1 P-2 + P-3. After any operation:
 ///         - P-2: `MIN_TICK ≤ pool.tick() ≤ MAX_TICK`
 ///         - P-3: `MIN_SQRT_RATIO ≤ pool.sqrtPriceX96() < MAX_SQRT_RATIO`
@@ -77,10 +77,9 @@ contract PancakeV3TickBoundsTest is Test {
     }
 
     function testFuzz_property_tickAlwaysInBounds(int24 tickDelta) public {
-        // Bound tickDelta into a range that may or may not push out of bounds.
-        // The reference reverts on out-of-bound; surviving calls leave tick
-        // in [MIN_TICK, MAX_TICK]. We swallow the revert and check the
-        // post-state.
+        // int24 already covers the full bound surface. The reference reverts
+        // on out-of-bound input; surviving calls leave tick in
+        // [MIN_TICK, MAX_TICK]. We swallow the revert and check the post-state.
         try pool.simulateSwapStep(true, 0, tickDelta, 0) {
             assertGe(pool.tick(), TickMath.MIN_TICK);
             assertLe(pool.tick(), TickMath.MAX_TICK);
@@ -121,7 +120,7 @@ contract PancakeV3TickBoundsTest is Test {
     }
 
     function test_property_sqrtPriceAtMax_reverts() public {
-        // MAX_SQRT_RATIO itself is rejected — the v3 invariant is
+        // MAX_SQRT_RATIO itself is rejected; the v3 invariant is
         // `sqrtPriceX96 < MAX_SQRT_RATIO`, strict.
         int256 delta = int256(uint256(TickMath.MAX_SQRT_RATIO)) - int256(uint256(INITIAL_SQRT_PRICE));
         vm.expectRevert(bytes("sqrtPriceX96>=MAX"));

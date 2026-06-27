@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.28;
 
-/// @title TickMath — Uniswap v3 tick + sqrtPriceX96 address-space constants.
+/// @title TickMath: Uniswap v3 tick + sqrtPriceX96 address-space constants.
 /// @notice Reproduces the canonical `MIN_TICK`, `MAX_TICK`, `MIN_SQRT_RATIO`,
 ///         `MAX_SQRT_RATIO` from Uniswap v3 `TickMath.sol`. PancakeSwap v3
 ///         forks Uniswap v3 1:1 for tick / sqrtPriceX96 math; these constants
@@ -14,7 +14,7 @@ pragma solidity ^0.8.28;
 ///
 ///         Constants (facts about the address space) are reproduced here
 ///         under Apache-2.0; the upstream `getSqrtRatioAtTick` /
-///         `getTickAtSqrtRatio` *implementations* are NOT reproduced — they
+///         `getTickAtSqrtRatio` *implementations* are NOT reproduced; they
 ///         remain GPL-2.0-or-later at upstream. If a future milestone needs
 ///         those, we either (a) vendor the upstream file with its full GPL
 ///         header and re-evaluate the repo's license posture, or (b) link

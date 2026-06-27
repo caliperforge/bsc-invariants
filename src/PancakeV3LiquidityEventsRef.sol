@@ -3,10 +3,10 @@ pragma solidity ^0.8.28;
 
 import {TickMath} from "./lib/TickMath.sol";
 
-/// @title PancakeV3LiquidityEventsRef — minimal v3 mint/burn + active-liquidity reference.
+/// @title PancakeV3LiquidityEventsRef: minimal v3 mint/burn + active-liquidity reference.
 /// @notice A same-source twin minimal to the P-4 LiquidityEventConsistency
 ///         invariant (SCOPE.md §1 P-4). It is NOT a fork of PancakeSwap's
-///         production v3 pool — only the mint/burn surface and the
+///         production v3 pool: only the mint/burn surface and the
 ///         active-liquidity update rule for in-range positions are reproduced.
 ///
 ///         The canonical Uniswap v3 / PancakeSwap v3 rule (see
@@ -84,7 +84,7 @@ contract PancakeV3LiquidityEventsRef {
         require(amount > 0, "amount=0");
 
         bytes32 key = _positionKey(owner, tickLower, tickUpper);
-        // Position-side update is unconditional — out-of-range mints are
+        // Position-side update is unconditional; out-of-range mints are
         // legitimate (LPs frequently pre-position liquidity for an expected
         // price move).
         positionLiquidity[key] += amount;
@@ -159,6 +159,7 @@ contract PancakeV3LiquidityEventsRef {
 
     function _u128(uint256 v) internal pure returns (uint128) {
         require(v <= type(uint128).max, "liquidity>uint128");
+        // forge-lint: disable-next-line(unsafe-typecast) // safe: the require above bounds v to type(uint128).max.
         return uint128(v);
     }
 }

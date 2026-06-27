@@ -1,0 +1,73 @@
+No files changed, compilation skipped
+
+Ran 11 tests for invariants/PancakeV3TickBounds.t.sol:PancakeV3TickBoundsTest
+[PASS] testFuzz_property_tickAlwaysInBounds(int24) (runs: 1000, μ: 22608, ~: 24236)
+[PASS] test_property_initialSqrtPriceX96_inBounds() (gas: 11027)
+[PASS] test_property_initialTick_inBounds() (gas: 11141)
+[PASS] test_property_sqrtPriceAtMax_reverts() (gas: 11772)
+[PASS] test_property_sqrtPriceAtMin_admitted() (gas: 22625)
+[PASS] test_property_sqrtPriceBelowMin_reverts() (gas: 11842)
+[PASS] test_property_sqrtPriceJustBelowMax_admitted() (gas: 22885)
+[PASS] test_property_tickAboveMax_reverts() (gas: 11592)
+[PASS] test_property_tickAtMax_admitted() (gas: 22811)
+[PASS] test_property_tickAtMin_admitted() (gas: 22707)
+[PASS] test_property_tickBelowMin_reverts() (gas: 11406)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 30.06ms (33.32ms CPU time)
+
+Ran 8 tests for invariants/PancakeV3LiquidityEvents.t.sol:PancakeV3LiquidityEventsTest
+[PASS] invariant_activeLiquidity_equalsNetMintMinusBurn_inRange() (runs: 256, calls: 12800, reverts: 0)
+
+╭------------------+------------------+-------+---------+----------╮
+| Contract         | Selector         | Calls | Reverts | Discards |
++==================================================================+
+| LiquidityHandler | burnBounded      | 4295  | 0       | 0        |
+|------------------+------------------+-------+---------+----------|
+| LiquidityHandler | crossTickBounded | 4289  | 0       | 0        |
+|------------------+------------------+-------+---------+----------|
+| LiquidityHandler | mintBounded      | 4216  | 0       | 0        |
+╰------------------+------------------+-------+---------+----------╯
+
+[PASS] testFuzz_property_mint_inRange_incrementsByDelta(uint96) (runs: 1000, μ: 59916, ~: 59916)
+[PASS] test_property_burn_inRange_decrementsByDelta() (gas: 65385)
+[PASS] test_property_burn_outOfRange_leavesActiveUnchanged() (gas: 44110)
+[PASS] test_property_crossTick_thenMint_inRange_activates() (gas: 67839)
+[PASS] test_property_mint_inRange_incrementsByDelta() (gas: 59731)
+[PASS] test_property_mint_outOfRange_leavesActiveUnchanged() (gas: 38930)
+[PASS] test_property_positionLiquidity_alwaysIncrementsOnMint() (gas: 38315)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 866.87ms (885.19ms CPU time)
+
+Ran 5 tests for invariants/PancakeV3FeeGrowth.t.sol:PancakeV3FeeGrowthTest
+[PASS] invariant_feeGrowth_neverDecreases() (runs: 256, calls: 12800, reverts: 0)
+
+╭------------------+----------+-------+---------+----------╮
+| Contract         | Selector | Calls | Reverts | Discards |
++==========================================================+
+| FeeGrowthHandler | swapStep | 12800 | 0       | 0        |
+╰------------------+----------+-------+---------+----------╯
+
+[PASS] testFuzz_property_nonZeroAmount_strictIncrease(uint128,bool) (runs: 1000, μ: 45203, ~: 45181)
+[PASS] test_property_swapToken0_increasesFee0_onlyFee0() (gas: 45839)
+[PASS] test_property_swapToken1_increasesFee1_onlyFee1() (gas: 45804)
+[PASS] test_property_zeroAmount_noFeeChange() (gas: 28437)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 1.05s (1.07s CPU time)
+
+Ran 7 tests for invariants/PancakeV3FeeGrowthOutside.t.sol:PancakeV3FeeGrowthOutsideTest
+[PASS] invariant_feeGrowthOutside_bounded_byGlobal() (runs: 256, calls: 12800, reverts: 0)
+
+╭-------------------------+---------------+-------+---------+----------╮
+| Contract                | Selector      | Calls | Reverts | Discards |
++======================================================================+
+| FeeGrowthOutsideHandler | accrueBounded | 6416  | 0       | 0        |
+|-------------------------+---------------+-------+---------+----------|
+| FeeGrowthOutsideHandler | crossBounded  | 6384  | 0       | 0        |
+╰-------------------------+---------------+-------+---------+----------╯
+
+[PASS] testFuzz_property_outside_boundedAfterSwap(uint128) (runs: 1000, μ: 43606, ~: 43606)
+[PASS] test_property_crossUp_flipsOutside_toGlobalMinusOldOutside() (gas: 74852)
+[PASS] test_property_doubleCross_isInvolutive() (gas: 63316)
+[PASS] test_property_initialize_aboveCurrent_seedsOutsideZero() (gas: 66958)
+[PASS] test_property_initialize_belowCurrent_seedsOutsideEqualsGlobal() (gas: 89657)
+[PASS] test_property_outside_neverExceedsGlobal_afterAccrues() (gas: 76992)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 1.38s (1.40s CPU time)
+
+Ran 4 test suites in 1.39s (3.33s CPU time): 31 tests passed, 0 failed, 0 skipped (31 total tests)

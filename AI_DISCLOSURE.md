@@ -1,4 +1,4 @@
-# AI Disclosure — bsc-invariants
+# AI Disclosure: bsc-invariants
 
 The `bsc-invariants` library is built and maintained by CaliperForge
 under an AI-augmented authoring stack. This document is calm
@@ -17,7 +17,7 @@ that gates each one. The discipline mirrors the sibling library
 - **Reference contracts.** The minimal reference under
   `src/PancakeV3FeeAccountingRef.sol` is a same-source twin minimal to
   the invariants under test. It is NOT a fork of PancakeSwap's
-  production source — the upstream pool source is at
+  production source; the upstream pool source is at
   `pancakeswap/pancake-v3-contracts` (GPL-2.0-or-later) and is
   referenced via attribution in `NOTICE`, not vendored.
 - **READMEs and case write-ups.** Drafted with AI assistance;
@@ -30,7 +30,7 @@ that gates each one. The discipline mirrors the sibling library
   cite (carried as-cited).
 - The CI verdict (pass / fail is a function of the `forge` run, not
   the model).
-- The operator-approved positioning paragraph (README.md §1) — that
+- The operator-approved positioning paragraph (README.md §1): that
   text is human-locked verbatim across surfaces.
 - The operator's final-pass sign-off decisions and the milestone
   exit-gate sign-offs.
@@ -55,4 +55,4 @@ for the org-level register.
 
 ## Contact
 
-Operator: Michael Moffett — michael@caliperforge.com — team@caliperforge.com.
+Operator: Michael Moffett, michael@caliperforge.com, team@caliperforge.com.

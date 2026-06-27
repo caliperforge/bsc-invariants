@@ -1,6 +1,6 @@
 name: ci
 
-# bsc-invariants CI — v0.0.1 (Week-1 scaffold).
+# bsc-invariants CI, v0.0.2 (Weeks 1+2).
 #
 # Mirrors the hyperevm-safety CI pattern: a library-build + library-properties
 # pair for the M1 surface (PancakeSwap v3 P-1 / P-2 / P-3), plus path-gated
@@ -26,11 +26,11 @@ defaults:
   run:
     # Workflows are designed to be moved to repo root on the public flip; until
     # then they reference paths under experiments/bsc-invariants/. Each job
-    # explicitly `cd`s — this default just makes ad-hoc steps consistent.
+    # explicitly `cd`s; this default just makes ad-hoc steps consistent.
     working-directory: .
 
 jobs:
-  # M1 — library-build
+  # M1. library-build
   library-build:
     name: library-build (forge build src/ invariants/)
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
       - name: forge build src/ + invariants/
         run: forge build --sizes
 
-  # M1 — library-properties-clean (P-1 / P-2 / P-3 against the clean reference)
+  # M1. library-properties-clean (P-1 / P-2 / P-3 against the clean reference)
   library-properties-clean:
     name: library-properties-clean (forge test invariants/)
     runs-on: ubuntu-latest
@@ -71,9 +71,9 @@ jobs:
           forge test --match-path 'invariants/*.t.sol' \
             --no-match-path 'invariants/planted/*' -vv
 
-  # M2 — PancakeSwap v3 P-1 planted-twin pair (clean-passes leg)
+  # M2. PancakeSwap v3 P-1 planted-twin pair (clean-passes leg)
   p1-feegrowth-clean-passes:
-    name: p1-feegrowth clean-passes (PancakeV3FeeGrowth.t.sol — no INVARIANT VIOLATED)
+    name: p1-feegrowth clean-passes (PancakeV3FeeGrowth.t.sol, no INVARIANT VIOLATED)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: library-build
@@ -98,18 +98,18 @@ jobs:
         if: steps.gate.outputs.wired == 'true'
         uses: ./.github/actions/foundry-setup
 
-      - name: Clean leg — forge test PancakeV3FeeGrowth + assert no INVARIANT VIOLATED
+      - name: Clean leg, forge test PancakeV3FeeGrowth + assert no INVARIANT VIOLATED
         if: steps.gate.outputs.wired == 'true'
         shell: bash
         run: |
           set -euo pipefail
           forge test --match-path 'invariants/PancakeV3FeeGrowth.t.sol' -vv 2>&1 | tee /tmp/p1-clean-out.txt
           if grep -q "INVARIANT VIOLATED" /tmp/p1-clean-out.txt; then
-            echo "::error::P-1 clean leg produced INVARIANT VIOLATED — clean leg MUST pass silently."
+            echo "::error::P-1 clean leg produced INVARIANT VIOLATED; clean leg MUST pass silently."
             exit 1
           fi
 
-  # M2 — PancakeSwap v3 P-1 planted-twin pair (planted-fires leg)
+  # M2. PancakeSwap v3 P-1 planted-twin pair (planted-fires leg)
   p1-feegrowth-planted-fires:
     name: p1-feegrowth planted-fires (PancakeV3FeeGrowth.planted.t.sol surfaces INVARIANT VIOLATED)
     runs-on: ubuntu-latest
@@ -136,7 +136,7 @@ jobs:
         if: steps.gate.outputs.wired == 'true'
         uses: ./.github/actions/foundry-setup
 
-      - name: Planted leg — forge test MUST surface INVARIANT VIOLATED FeeGrowthMonotonicity
+      - name: Planted leg, forge test MUST surface INVARIANT VIOLATED FeeGrowthMonotonicity
         if: steps.gate.outputs.wired == 'true'
         shell: bash
         run: |
@@ -151,18 +151,20 @@ jobs:
             exit 1
           fi
           if [ "$ec" -eq 0 ]; then
-            echo "::error::P-1 planted leg exited 0 — expected non-zero from property revert."
+            echo "::error::P-1 planted leg exited 0; expected non-zero from property revert."
             exit 1
           fi
           echo "::notice::P-1 planted leg correctly surfaced INVARIANT VIOLATED and exited non-zero (ec=$ec)."
 
-  # M2 — Venus harness placeholder (path-gated)
+  # M2. Venus harness placeholder (path-gated)
   venus-harness-build:
-    name: venus-harness-build (forge build venus/) — M2
+    name: venus-harness-build (forge build venus/), M2
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
 
       - name: Detect Venus harness wired (M2)
         id: gate
@@ -182,13 +184,15 @@ jobs:
         with:
           build: "true"
 
-  # M3 — Stargate-on-BSC harness placeholder (path-gated)
+  # M3. Stargate-on-BSC harness placeholder (path-gated)
   stargate-harness-build:
-    name: stargate-harness-build (forge build stargate/) — M3
+    name: stargate-harness-build (forge build stargate/), M3
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: recursive
 
       - name: Detect Stargate harness wired (M3)
         id: gate

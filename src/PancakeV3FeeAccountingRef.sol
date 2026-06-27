@@ -3,20 +3,20 @@ pragma solidity ^0.8.28;
 
 import {TickMath} from "./lib/TickMath.sol";
 
-/// @title PancakeV3FeeAccountingRef — minimal v3-fee-growth + tick-bound reference.
+/// @title PancakeV3FeeAccountingRef: minimal v3-fee-growth + tick-bound reference.
 /// @notice A same-source twin minimal to the fee-growth + tick-bound invariants
 ///         under test (P-1 / P-2 / P-3 per `SCOPE.md`). It is NOT a fork of
-///         PancakeSwap's production v3 pool source — only the fee-accounting +
+///         PancakeSwap's production v3 pool source: only the fee-accounting +
 ///         tick-bound state and the swap-step update rule a v3 pool uses are
 ///         reproduced.
 ///
 ///         The math reproduces the Uniswap v3 / PancakeSwap v3 invariant:
 ///         on every swap step with non-zero in-amount and non-zero fee,
 ///         `feeGrowthGlobalXX128` increases by `feeAmount * Q128 / liquidity`
-///         (signed semantics ignored — the planted twin in M2 will swap this
+///         (signed semantics ignored; the planted twin in M2 will swap this
 ///         increment for a decrement to surface the property failure).
 ///
-///         The reference operates in "increment-only" arithmetic — we do NOT
+///         The reference operates in "increment-only" arithmetic; we do NOT
 ///         wrap on overflow here. Real Uniswap v3 stores fee growth as
 ///         `uint256` and DOES allow wrap; the protocol's `(global - outside)`
 ///         subtraction recovers position-local growth under modular
@@ -70,7 +70,7 @@ contract PancakeV3FeeAccountingRef {
     // Construction
     // ---------------------------------------------------------------------
 
-    /// @param _feePips Pool fee in 1e-6 units (e.g. 100, 500, 2500, 10000 —
+    /// @param _feePips Pool fee in 1e-6 units (e.g. 100, 500, 2500, 10000,
     ///                 the canonical PancakeSwap v3 fee tiers).
     /// @param _liquidity Initial active liquidity. Must be > 0 to admit any
     ///                   fee accrual (the v3 swap step divides by liquidity).
@@ -101,7 +101,7 @@ contract PancakeV3FeeAccountingRef {
     /// @notice Simulate a single swap step. Updates fee growth on the input
     ///         side, advances the tick by `tickDelta`, and advances
     ///         sqrtPriceX96 by `sqrtPriceDelta`. Reverts if the resulting
-    ///         tick or sqrtPriceX96 would exit the v3 address space — this
+    ///         tick or sqrtPriceX96 would exit the v3 address space; this
     ///         mirrors the upstream `require` checks in `SwapMath.sol`.
     ///
     ///         The clean reference: fee growth ALWAYS increases (or stays
@@ -153,7 +153,9 @@ contract PancakeV3FeeAccountingRef {
             }
         }
 
+        // forge-lint: disable-next-line(unsafe-typecast) // safe: the require checks above pin newTickSigned to [MIN_TICK, MAX_TICK], which fits int24.
         tick = int24(newTickSigned);
+        // forge-lint: disable-next-line(unsafe-typecast) // safe: the require checks above pin newSqrtSigned to [MIN_SQRT_RATIO, MAX_SQRT_RATIO), which is non-negative and fits uint160.
         sqrtPriceX96 = uint160(uint256(newSqrtSigned));
 
         emit SwapStep(
