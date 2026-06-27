@@ -18,14 +18,14 @@ This README claims only what ships at HEAD.
 > **What this is.** `bsc-invariants` is an open-source library of
 > invariants and CI-runnable property tests for BNB Smart Chain DeFi
 > protocols, starting with PancakeSwap v3 (the canonical BSC DEX).
-> Each invariant is paired with a same-source twin discipline — a
+> Each invariant is paired with a same-source twin discipline: a
 > clean reference where the property holds under fuzz, and (at M2) a
 > planted-bug twin where the property fires with a deterministic
 > `INVARIANT VIOLATED` marker. The library extends the planted-twin
 > discipline already shipped on HyperEVM (`hyperevm-safety`) and
 > Ethereum mainnet (Lido EVM probe). **What this isn't.** Not an
 > audit. Not a runtime monitor. Not a SaaS product. Not (yet) a
-> comprehensive coverage of the BSC DeFi stack — PancakeSwap v3 is
+> broad coverage of the BSC DeFi stack: PancakeSwap v3 is
 > M1; Venus is M2; Stargate-on-BSC is M3. The thesis is reputation
 > → grant upside + downstream integration as the safety-rating
 > primitive layer the BNB Chain wishlist's "Risk Scoring Frameworks"
@@ -75,7 +75,7 @@ the single source of truth for the precise statement.
 | **P-5** | FeeGrowthOutsideConsistency (per-initialized-tick `feeGrowthOutside ≤ feeGrowthGlobal`, increment-only form) | [`PancakeV3FeeGrowthOutsideRef.sol`](src/PancakeV3FeeGrowthOutsideRef.sol) | [`PancakeV3FeeGrowthOutside.t.sol`](invariants/PancakeV3FeeGrowthOutside.t.sol) |
 | **P-1 planted** | Planted-twin CI pair (planted leg surfaces `INVARIANT VIOLATED feeGrowth_neverDecreases`, exits non-zero) | inline `BrokenPancakeV3FeeAccountingRef` (hyperevm-safety convention) | [`PancakeV3FeeGrowth.planted.t.sol`](invariants/planted/PancakeV3FeeGrowth.planted.t.sol) |
 
-P-1 is the highest-leverage invariant. The bug class it catches,
+P-1 is the highest-priority invariant. The bug class it catches,
 fee-growth accounting that decreases under any non-zero swap, is the
 exact failure mode of Uniswap-v3-fork forks that mis-port the
 `feeGrowthGlobalX128 += FullMath.mulDiv(...)` increment: the

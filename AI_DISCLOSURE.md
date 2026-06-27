@@ -30,8 +30,7 @@ that gates each one. The discipline mirrors the sibling library
   cite (carried as-cited).
 - The CI verdict (pass / fail is a function of the `forge` run, not
   the model).
-- The operator-approved positioning paragraph (README.md §1): that
-  text is human-locked verbatim across surfaces.
+- The operator-approved positioning paragraph (README.md §1): operator-authored, AI copy-edited 2026-06-27 (em-dash and generic-vocab sweep authorized by CEO 2026-06-27 per the §4a anti-AI-ism pass), operator-approved. The text remains the operator-locked positioning across surfaces; the 2026-06-27 sweep modified only typography (em-dash → colon) and one generic-adjective replacement (comprehensive → broad).
 - The operator's final-pass sign-off decisions and the milestone
   exit-gate sign-offs.
 
