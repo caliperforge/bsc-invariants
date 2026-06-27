@@ -1,0 +1,32 @@
+No files changed, compilation skipped
+
+Ran 11 tests for invariants/PancakeV3TickBounds.t.sol:PancakeV3TickBoundsTest
+[PASS] testFuzz_property_tickAlwaysInBounds(int24) (runs: 1000, μ: 22726, ~: 24236)
+[PASS] test_property_initialSqrtPriceX96_inBounds() (gas: 11027)
+[PASS] test_property_initialTick_inBounds() (gas: 11141)
+[PASS] test_property_sqrtPriceAtMax_reverts() (gas: 11772)
+[PASS] test_property_sqrtPriceAtMin_admitted() (gas: 22625)
+[PASS] test_property_sqrtPriceBelowMin_reverts() (gas: 11842)
+[PASS] test_property_sqrtPriceJustBelowMax_admitted() (gas: 22885)
+[PASS] test_property_tickAboveMax_reverts() (gas: 11592)
+[PASS] test_property_tickAtMax_admitted() (gas: 22811)
+[PASS] test_property_tickAtMin_admitted() (gas: 22707)
+[PASS] test_property_tickBelowMin_reverts() (gas: 11406)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 19.11ms (29.35ms CPU time)
+
+Ran 5 tests for invariants/PancakeV3FeeGrowth.t.sol:PancakeV3FeeGrowthTest
+[PASS] invariant_feeGrowth_neverDecreases() (runs: 256, calls: 12800, reverts: 0)
+
+╭------------------+----------+-------+---------+----------╮
+| Contract         | Selector | Calls | Reverts | Discards |
++==========================================================+
+| FeeGrowthHandler | swapStep | 12800 | 0       | 0        |
+╰------------------+----------+-------+---------+----------╯
+
+[PASS] testFuzz_property_nonZeroAmount_strictIncrease(uint128,bool) (runs: 1000, μ: 45202, ~: 45181)
+[PASS] test_property_swapToken0_increasesFee0_onlyFee0() (gas: 45839)
+[PASS] test_property_swapToken1_increasesFee1_onlyFee1() (gas: 45804)
+[PASS] test_property_zeroAmount_noFeeChange() (gas: 28437)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 1.08s (1.09s CPU time)
+
+Ran 2 test suites in 1.09s (1.10s CPU time): 16 tests passed, 0 failed, 0 skipped (16 total tests)

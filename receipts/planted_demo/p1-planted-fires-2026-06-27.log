@@ -1,0 +1,27 @@
+No files changed, compilation skipped
+
+Ran 2 tests for invariants/planted/PancakeV3FeeGrowth.planted.t.sol:PancakeV3FeeGrowthPlantedTest
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases; counterexample: calldata=0x2193b6fd0000000000000000000000000000000000000000000000000000000000023c190000000000000000000000000000000000000000000000000000000000000000 args=[146457 [1.464e5], 0]] testFuzz_property_planted_zeroForOne_decreasingAmount_invariantViolated(uint128,uint128) (runs: 7, μ: 38386, ~: 38386)
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases] test_property_planted_zeroForOne_decreasingAmount_invariantViolated() (gas: 44038)
+Logs:
+  INVARIANT VIOLATED feeGrowth_neverDecreases (token0)
+    amount1                = 1000000000000000000000000
+    feeGrowthGlobal0X128_1 = 170141183460469231731687303715884105728000
+    amount2                = 10000000000000000000000
+    feeGrowthGlobal0X128_2 = 1701411834604692317316873037158841057280
+    (planted bug: `=` instead of `+=` on the zeroForOne fee0 path)
+
+Suite result: FAILED. 0 passed; 2 failed; 0 skipped; finished in 3.27ms (3.71ms CPU time)
+
+Ran 1 test suite in 6.32ms (3.27ms CPU time): 0 tests passed, 2 failed, 0 skipped (2 total tests)
+
+Failing tests:
+Encountered 2 failing tests in invariants/planted/PancakeV3FeeGrowth.planted.t.sol:PancakeV3FeeGrowthPlantedTest
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases; counterexample: calldata=0x2193b6fd0000000000000000000000000000000000000000000000000000000000023c190000000000000000000000000000000000000000000000000000000000000000 args=[146457 [1.464e5], 0]] testFuzz_property_planted_zeroForOne_decreasingAmount_invariantViolated(uint128,uint128) (runs: 7, μ: 38386, ~: 38386)
+[FAIL: INVARIANT VIOLATED feeGrowth_neverDecreases] test_property_planted_zeroForOne_decreasingAmount_invariantViolated() (gas: 44038)
+
+Encountered a total of 2 failing tests, 0 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 2 failed tests
+
+Fuzz seed: 0x9f1136a74b2b563483e43519c00d54d4b657b5b9cc8b065047b1a5ad6979b107 (use `--fuzz-seed` to reproduce)

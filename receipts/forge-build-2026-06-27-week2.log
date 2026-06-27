@@ -1,0 +1,113 @@
+No files changed, compilation skipped
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ src/PancakeV3FeeAccountingRef.sol:156:16
+    │
+156 │         tick = int24(newTickSigned);
+    │                ━━━━━━━━━━━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'int24' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ invariants/PancakeV3LiquidityEvents.t.sol:172:26
+    │
+172 │         uint128 amount = uint128(uint256(rawAmount) % cap);
+    │                          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'uint128' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+   ╭▸ invariants/planted/PancakeV3FeeGrowth.planted.t.sol:97:16
+   │
+97 │         tick = int24(newTickSigned);
+   │                ━━━━━━━━━━━━━━━━━━━━
+   │
+   ├ note: consider disabling this lint if you're certain the cast is safe
+   │       
+   │       // casting to 'int24' is safe because [explain why]
+   │       // forge-lint: disable-next-line(unsafe-typecast)
+   │       
+   │       
+   ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+   ╭▸ invariants/planted/PancakeV3FeeGrowth.planted.t.sol:98:24
+   │
+98 │         sqrtPriceX96 = uint160(uint256(newSqrtSigned));
+   │                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ├ note: consider disabling this lint if you're certain the cast is safe
+   │       
+   │       // casting to 'uint160' is safe because [explain why]
+   │       // forge-lint: disable-next-line(unsafe-typecast)
+   │       
+   │       
+   ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+   ╭▸ invariants/planted/PancakeV3FeeGrowth.planted.t.sol:98:32
+   │
+98 │         sqrtPriceX96 = uint160(uint256(newSqrtSigned));
+   │                                ━━━━━━━━━━━━━━━━━━━━━━
+   │
+   ├ note: consider disabling this lint if you're certain the cast is safe
+   │       
+   │       // casting to 'uint256' is safe because [explain why]
+   │       // forge-lint: disable-next-line(unsafe-typecast)
+   │       
+   │       
+   ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ src/PancakeV3FeeAccountingRef.sol:157:24
+    │
+157 │         sqrtPriceX96 = uint160(uint256(newSqrtSigned));
+    │                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'uint160' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ src/PancakeV3FeeAccountingRef.sol:157:32
+    │
+157 │         sqrtPriceX96 = uint160(uint256(newSqrtSigned));
+    │                                ━━━━━━━━━━━━━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'uint256' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+
+warning[unsafe-typecast]: typecasts that can truncate values should be checked
+    ╭▸ src/PancakeV3LiquidityEventsRef.sol:162:16
+    │
+162 │         return uint128(v);
+    │                ━━━━━━━━━━
+    │
+    ├ note: consider disabling this lint if you're certain the cast is safe
+    │       
+    │       // casting to 'uint128' is safe because [explain why]
+    │       // forge-lint: disable-next-line(unsafe-typecast)
+    │       
+    │       
+    ╰ help: https://book.getfoundry.sh/reference/forge/forge-lint#unsafe-typecast
+

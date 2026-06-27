@@ -1,4 +1,11 @@
-# bsc-invariants — RUN_SUMMARY (Week 1, 2026-06-27)
+# bsc-invariants — RUN_SUMMARY (Weeks 1+2, 2026-06-27)
+
+The Week-2 update lives at the bottom of this file (`§W2-1` ... `§W2-7`).
+Week-1 sections remain unchanged for provenance.
+
+---
+
+# Week 1 — initial scaffold
 
 **Repo target:** `experiments/bsc-invariants/` (will land at `github.com/caliperforge/bsc-invariants` on the public flip — gated on §4b code-quality reviewer PASS + CEO greenlight).
 **Owner:** Solidity Specialist.
@@ -143,3 +150,139 @@ None new from this dispatch. Carried forward (from the Research Lead's §5):
 - **`D-bnb-grant-ask-band-2026-06-26`** — ratify the $80K mid-band ask (3 deliverables across PancakeSwap v3 + Venus + Stargate + agent-registry). Solidity Specialist surfaces this as the design choice baked into the SCOPE table's milestone partitioning. CEO call.
 
 **Operational decision (Director-level, not CEO):** the §4b code-quality reviewer (`code_quality_reviewer`, NOT the solidity_specialist who built this) must audit the Week 1 + Week 2 scaffold against the `agents/ai_ops/policies/code_authoring_standard.md` ruleset BEFORE any public flip. The §4b review should happen end of Week 2; the public flip is CEO-gated and additionally awaits the Chrome/Playwright form walk (`bnb_grant_win_analysis_2026-06-26.md` §10).
+
+---
+
+# Week 2 — planted-twin CI demo + core invariant build-out
+
+**Dispatch:** `T-bnb-bsc-invariants-week2-2026-06-27` (Director, per CEO greenlight `D-bnb-grant-greenlight-2026-06-27`).
+**Builds on:** Week-1 commit `5bb0b2e` (16/16 forge green).
+**Date:** 2026-06-27.
+
+## §W2-1 — What shipped (Week 2)
+
+Three deliverables per the Week-2 dispatch:
+
+1. **Planted-twin CI pair for P-1 (FeeGrowthGlobalMonotonicity)** — the headline differentiator. New file: `invariants/planted/PancakeV3FeeGrowth.planted.t.sol`. Hosts:
+   - `BrokenPancakeV3FeeAccountingRef` — same interface + storage as `src/PancakeV3FeeAccountingRef.sol`, with a single localized hunk: `feeGrowthGlobal0X128 = deltaX128` (assignment) instead of the canonical `+=` on the `zeroForOne` branch. Mirrors the hyperevm-safety planted-twin convention (the Broken contract lives inline in the test file, not in `src/`, because it is a documented bug-class model).
+   - `test_property_planted_zeroForOne_decreasingAmount_invariantViolated` — fixed-input boundary witness (`amount1=1e24`, `amount2=1e22`) that produces a strict decrease and logs + reverts with `INVARIANT VIOLATED feeGrowth_neverDecreases`.
+   - `testFuzz_property_planted_zeroForOne_decreasingAmount_invariantViolated` — fuzz sweep over `(a1, a2)` with `a1 > a2 ≥ 2000`; the planted bug always surfaces.
+
+   The CI's `p1-feegrowth-clean-passes` + `p1-feegrowth-planted-fires` jobs were already wired in Week 1 with a file-presence gate (`invariants/planted/PancakeV3FeeGrowth.planted.t.sol`). Both jobs flip automatically from `deferred` to `real-work-green` the moment the planted file lands. No edits to `.github/workflows/ci.yml` were needed.
+
+2. **P-4 LiquidityEventConsistency.** New files: `src/PancakeV3LiquidityEventsRef.sol` + `invariants/PancakeV3LiquidityEvents.t.sol`. The reference exposes `mint`, `burn`, and `crossTick`; the property asserts `liquidity_after - liquidity_before == ±amount` for in-range positions and `== 0` for out-of-range, plus a stateful-fuzz invariant comparing active liquidity against a net-mint-minus-burn shadow under a clamped tick band. Eight tests, all green.
+
+3. **P-5 FeeGrowthOutsideConsistency.** New files: `src/PancakeV3FeeGrowthOutsideRef.sol` + `invariants/PancakeV3FeeGrowthOutside.t.sol`. The reference models the per-tick `feeGrowthOutside0/1X128` state plus the canonical Uniswap v3 init + flip rules; the property asserts `feeGrowthOutside[t] ≤ feeGrowthGlobal` (the increment-only conservation form — wrap-around modelling is an honest documented gap). Seven tests, all green, including a 6-tick stateful-fuzz invariant under accrue + cross fuzzing.
+
+Updated: `SCOPE.md` (flipped P-4, P-5, P-1-planted-twin from ⬜ M2 to ✅ M2; added Week-2 rationale paragraph) and this `RUN_SUMMARY.md`. `docs/invariants.md` continues to list P-4, P-5 — the in-code NatSpec is the precise mechanical statement; the prose doc gets a Week-2 update in §W2-7 below.
+
+## §W2-2 — What is still M2 / M3 / not-started
+
+Per the updated `SCOPE.md` §1:
+
+- **M2 (Week 3+ planned):** P-6 ProtocolFeeAccrualBound, P-7 ObservationCardinalityMonotonicity, planted-twin CI pairs for P-2 + P-3, P-5 wrap-around variant, BSC-mainnet fork tests against a real PancakeSwap v3 pool at a pinned block, Recon Chimera `Properties.sol` + `CryticTester.sol` scaffold. **Not started.**
+- **M2 (out of Week-2 scope per dispatch):** Venus lending invariants V-1 / V-2 / V-3 / V-4. **Not started.**
+- **M3 (out of Week-2 scope per dispatch):** Stargate-on-BSC bridge invariants S-1 / S-2 / S-3 + BNB Chain AI agent-registry harness A-1 / A-2. **Not started.**
+
+The Venus + Stargate + agent-registry surfaces remain untouched. CI's path-gated placeholder jobs continue to emit `::notice::` lines until those harnesses land.
+
+## §W2-3 — CI status (from logs, not the badge)
+
+Repo is still private; no remote push yet. The local proof is the four log files in `receipts/`. Summary:
+
+- **`receipts/forge-build-2026-06-27-week2.log`** — `forge build` clean (compiler run successful + advisory `unsafe-typecast` / `mixed-case-function` lints; identical class to Week 1, see §3).
+- **`receipts/forge-test-2026-06-27-week2.log`** — clean leg (`forge test --match-path 'invariants/*.t.sol' --no-match-path 'invariants/planted/*' -vv`). Tail:
+
+  ```
+  Ran 4 test suites in 1.32s (3.16s CPU time): 31 tests passed, 0 failed, 0 skipped (31 total tests)
+  ```
+
+  **31 / 31 pass**: 16 Week-1 (P-1 + P-2 + P-3) + 8 P-4 + 7 P-5 = 31 across 4 suites. 4 stateful-fuzz invariants (256 runs × 50 depth = 12,800 calls each, 0 reverts).
+
+- **`receipts/planted_demo/p1-clean-passes-2026-06-27.log`** — clean leg for the P-1 planted-twin gate (`forge test --match-path 'invariants/PancakeV3FeeGrowth.t.sol' -vv`). Exit 0. 5/5 pass. 0 `INVARIANT VIOLATED` markers in stdout. ✓
+- **`receipts/planted_demo/p1-planted-fires-2026-06-27.log`** — planted leg (`forge test --match-path 'invariants/planted/PancakeV3FeeGrowth.planted.t.sol' -vv`). Exit 1. 2/2 fail. 5 `INVARIANT VIOLATED feeGrowth_neverDecreases` markers in stdout. ✓
+
+Both CI invariants the `p1-feegrowth-*` jobs gate on are satisfied:
+
+- Clean leg: exit 0 AND no `INVARIANT VIOLATED` marker present → `p1-feegrowth-clean-passes` job passes.
+- Planted leg: non-zero exit AND `INVARIANT VIOLATED` marker present → `p1-feegrowth-planted-fires` job passes.
+
+CI-on-GitHub status (once the repo lands on a remote and a push runs): `library-build` + `library-properties-clean` mirror the local pass; `p1-feegrowth-clean-passes` + `p1-feegrowth-planted-fires` flip from `deferred` to green automatically (the file-presence gate is satisfied by the new planted file); the three remaining M2/M3 path-gated jobs (Venus, Stargate, plus future P-2/P-3 planted twins) continue to emit `::notice:: ... deferred` lines.
+
+## §W2-4 — Files written / changed
+
+```
+experiments/bsc-invariants/
+  .gitignore                                                     MODIFIED (re-include receipts/**/*.log so they're committable)
+  SCOPE.md                                                       MODIFIED (P-4/P-5/P-1-planted → ✅; Week-2 rationale)
+  RUN_SUMMARY.md                                                 MODIFIED (Week-2 sections appended)
+  docs/invariants.md                                             MODIFIED (P-4 + P-5 prose added; P-1 planted-twin marked LANDED)
+  src/PancakeV3LiquidityEventsRef.sol                            NEW
+  src/PancakeV3FeeGrowthOutsideRef.sol                           NEW
+  invariants/PancakeV3LiquidityEvents.t.sol                      NEW
+  invariants/PancakeV3FeeGrowthOutside.t.sol                     NEW
+  invariants/planted/PancakeV3FeeGrowth.planted.t.sol            NEW
+  receipts/forge-build-2026-06-27-week2.log                      NEW
+  receipts/forge-test-2026-06-27-week2.log                       NEW
+  receipts/planted_demo/p1-clean-passes-2026-06-27.log           NEW
+  receipts/planted_demo/p1-planted-fires-2026-06-27.log          NEW
+```
+
+**`.gitignore` note.** The repo-root `.gitignore` ignores `*.log` globally — a sensible default for Foundry build noise. Receipts under `experiments/bsc-invariants/receipts/` ARE dispatch deliverables (per `T-bnb-bsc-invariants-week2-2026-06-27` "receipts committed at `receipts/planted_demo/`"), so the local `.gitignore` re-includes them with `!receipts/**/*.log`. This fix retroactively makes Week-1's existing `receipts/forge-{build,test}-2026-06-27.log` committable as well (they were generated in Week 1 but `*.log`-ignored — an oversight from Week 1 that this change resolves).
+
+No other paths in the repo touched. No `git add -A`; the Build Engineer / Director will scope the commit set deliberately per dispatch discipline ("Do NOT run git commit"). Existing Week-1 files unchanged except `SCOPE.md` + `RUN_SUMMARY.md`.
+
+**Secret-scan note.** No `.env`, credentials, or tokens written. `.gitignore` already excludes `lib/`, `out/`, `cache/` — no wholesale vendoring; no new entries needed.
+
+## §W2-5 — Receipts & reproduction
+
+```bash
+cd experiments/bsc-invariants
+# Build:
+forge build
+# Clean leg (Week 1 + Week 2):
+forge test --match-path 'invariants/*.t.sol' \
+  --no-match-path 'invariants/planted/*' -vv
+# Planted leg (must exit non-zero and surface "INVARIANT VIOLATED ..."):
+forge test --match-path 'invariants/planted/PancakeV3FeeGrowth.planted.t.sol' -vv
+```
+
+Provenance: tested against `lib/forge-std @ v1.9.4` (tag `1eea5bae12ae557d589f9f0f0edae2faa47cb262`) on Foundry `1.7.1` (commit `4072e48705af9d93e3c0f6e29e93b5e9a40caed8`), solc 0.8.28, on macOS arm64 (operator host) at 2026-06-27.
+
+## §W2-6 — Known gaps + Week 3 plan
+
+**Honest gaps in v0.0.2:**
+
+1. **P-5 is the increment-only conservation form** — `feeGrowthOutside[t] ≤ feeGrowthGlobal`. Real Uniswap v3 stores both as `uint256` with wrap; the `(global - outside)` subtraction recovers position-local growth modulo 2^256. The wrap-around variant of P-5 is M2 work for Week 3 and is documented as a gap in `src/PancakeV3FeeGrowthOutsideRef.sol` NatSpec + `docs/invariants.md` P-5 § "What this models".
+2. **P-5 cross walks only the destination tick** — real v3 walks all initialized ticks strictly between current and `newTick`. The minimal reference is sufficient to exercise the flip rule and the conservation property; the multi-cross walk is a Week-3 add and is called out in the reference's NatSpec.
+3. **Planted-twin CI pairs only land for P-1** — P-2 (TickInBounds) and P-3 (SqrtPriceX96InBounds) planted twins are Week-3 work. The CI's `library-properties-clean` job already covers the clean legs for all three; the planted-twin discipline scales as a Week-3 add.
+4. **No BSC-mainnet fork tests yet.** Lands at M2 Week 3 — the highest-value remaining add for the grant narrative ("tested against PancakeSwap v3 at BSC block N" beats "tested against a reference").
+5. **No Recon Chimera bundle yet.** Lands at M2 Week 3 alongside the wrap-around P-5 variant.
+
+**Week-3 plan** (per `bnb_grant_win_analysis_2026-06-26.md` §4.2 B6 + the Week-2 dispatch's "after this lands, Director queues the §4b read"):
+
+- Ship P-6 ProtocolFeeAccrualBound + P-7 ObservationCardinalityMonotonicity.
+- Land planted-twin CI pairs for P-2 and P-3.
+- Add the first BSC-mainnet fork test against a real PancakeSwap v3 pool at a pinned block.
+- Land the wrap-around variant of P-5.
+- Pull the §4b `code_quality_reviewer` independent read on what Weeks 1+2 shipped, BEFORE any public flip discussion with the CEO.
+
+## §W2-7 — Discipline checklist
+
+- [x] No `git commit` run (Director/Build Engineer commits after review)
+- [x] No `git add -A`; file list above is scoped
+- [x] No secrets / `.env` / credentials in any written file
+- [x] CI status reported from logs, not from a (non-existent) badge
+- [x] Repo still private; no public flip (§4b + CEO gates remain queued)
+- [x] No nested sub-agents spawned
+- [x] No wholesale vendoring; `.gitignore` excludes `lib/` `out/` `cache/`
+- [x] Born-with-license preserved; Apache-2.0 SPDX header on every new `.sol` file
+- [x] README + SCOPE claim only what is in-tree at HEAD — P-4 / P-5 / P-1-planted flipped to ✅ only because tests pass; P-5's increment-only-conservation scope is documented as a gap
+- [x] Planted twin lives inline in the test file (hyperevm-safety convention), not in `src/`
+- [x] One-line receipt to Director will be written to `agents/solidity_specialist/outbox/`
+
+## §W2-8 — Decision queued for CEO
+
+None new from this dispatch. The Week-1-carried `D-bnb-grant-ask-band-2026-06-26` (ratify $80K mid-band ask) remains the only standing CEO call.
+
+**Operational hand-off (Director-level, not CEO):** the §4b independent `code_quality_reviewer` read on Weeks 1+2 is now appropriate to queue. The reviewer must NOT be the solidity_specialist that built this; the audit runs against `agents/ai_ops/policies/code_authoring_standard.md`. The public flip remains CEO-gated and additionally blocked on the Chrome/Playwright form walk per `bnb_grant_win_analysis_2026-06-26.md` §10.

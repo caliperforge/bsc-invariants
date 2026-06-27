@@ -25,3 +25,9 @@ lib/chimera/
 # Env
 .env
 .env.local
+
+# Receipts — override the repo-root `*.log` ignore for this experiment only.
+# Receipts under receipts/ are dispatch deliverables (forge build/test proofs
+# + planted-twin clean/planted leg evidence), not transient build noise.
+!receipts/
+!receipts/**/*.log

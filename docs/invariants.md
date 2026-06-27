@@ -47,11 +47,16 @@ withdrawProtocolFee accidentally touching `feeGrowthGlobal` instead of
   comparing pool state against a shadow last-observed value, so a
   single decrement trips the marker on the very next pass.
 
-**Planted-twin twin (M2).** `invariants/planted/PancakeV3FeeGrowth.planted.t.sol`
-will instantiate a planted reference that swaps the `+=` for a `-=`
-on the token0 fee-growth path. The clean leg passes silently; the
-planted leg fires `INVARIANT VIOLATED feeGrowth_neverDecreases (token0)`
-and `forge test` exits non-zero.
+**Planted-twin twin (LANDED — Week 2).** `invariants/planted/PancakeV3FeeGrowth.planted.t.sol`
+instantiates `BrokenPancakeV3FeeAccountingRef` — same interface as the
+clean reference with one localized hunk: `feeGrowthGlobal0X128 =
+deltaX128` (assignment) instead of the canonical `+=` on the
+`zeroForOne` branch. The clean leg
+(`invariants/PancakeV3FeeGrowth.t.sol`) passes silently; the planted
+leg fires `INVARIANT VIOLATED feeGrowth_neverDecreases (token0)` and
+`forge test` exits non-zero. Both are CI-gated by the file-presence
+check in `.github/workflows/ci.yml::p1-feegrowth-*`. Receipts in
+`receipts/planted_demo/`.
 
 ---
 
@@ -115,24 +120,138 @@ to admit the off-by-one.
 
 ---
 
-## What is M2 (next milestone, NOT in v0.0.1)
+---
 
-- **P-4 — LiquidityEventConsistency.** mint/burn updates `liquidity`
-  by exactly `±delta` for in-range positions; out-of-range positions
-  leave `liquidity` untouched.
-- **P-5 — FeeGrowthOutsideConsistency.** `feeGrowthOutside0/1X128`
-  per tick is conserved across crossings: at any tick, the
-  in-range-since-last-cross fees plus the outside-of-range fees sum
-  to `feeGrowthGlobal`.
+## P-4 — LiquidityEventConsistency
+
+**Statement.** After any `mint` / `burn` operation on a position
+`[tickLower, tickUpper)` with amount `Δ`:
+
+- If `currentTick ∈ [tickLower, tickUpper)` (in-range):
+  `liquidity_after - liquidity_before == +Δ` on mint, `−Δ` on burn.
+- Otherwise (out-of-range): `liquidity_after == liquidity_before`.
+
+In both cases, the position's per-position liquidity (`positions[key]`)
+updates by `±Δ`.
+
+**Why this property.** Uniswap v3's `Pool._modifyPosition` (and its
+PancakeSwap v3 mirror) routes a position update through three steps:
+(1) update `Tick.update` for both boundaries, (2) update
+`Position.update`, (3) IF the current tick is within the position's
+range, update the pool's active `liquidity` by `liquidityDelta`. The
+"in-range" check is the load-bearing branch — any fork that mis-ports
+it (e.g., applies the delta unconditionally, or applies it on the
+wrong sign, or applies it for an off-by-one `tickUpper` boundary)
+desyncs active liquidity from the set of currently-active LPs.
+
+**Citation.** Uniswap v3 `UniswapV3Pool.sol::_modifyPosition` —
+function body, the
+`if (params.tickLower <= state.tick && state.tick < params.tickUpper)`
+branch. PancakeSwap v3 mirror at the same path.
+
+**Bug class caught.** A forked v3 pool whose `_modifyPosition`:
+- applies `liquidityDelta` unconditionally (no in-range check),
+- applies it with the wrong sign,
+- uses `<=` instead of `<` on the upper boundary (off-by-one
+  ambiguity at exactly `tickUpper`),
+- or fails to apply it for in-range positions.
+
+The downstream effect is swap fee accrual to LPs that have no
+liquidity in range, or non-accrual to LPs that do.
+
+**Test plan.** `invariants/PancakeV3LiquidityEvents.t.sol`:
+- `test_property_mint_inRange_incrementsByDelta` — boundary unit.
+- `test_property_mint_outOfRange_leavesActiveUnchanged` — out-of-range case.
+- `test_property_burn_inRange_decrementsByDelta` — symmetric burn.
+- `test_property_burn_outOfRange_leavesActiveUnchanged` — out-of-range burn.
+- `test_property_crossTick_thenMint_inRange_activates` — cross-then-mint sanity.
+- `test_property_positionLiquidity_alwaysIncrementsOnMint` — position-side accounting.
+- `testFuzz_property_mint_inRange_incrementsByDelta` — fuzz amount.
+- `invariant_activeLiquidity_equalsNetMintMinusBurn_inRange` — stateful fuzz comparing pool active liquidity to a sum-of-mints-minus-burns shadow under a clamped tick band.
+
+**Planted-twin twin (M2 — Week 3 work).** Not yet landed; the planted
+hunk will drop the `if (inRange)` check from `mint` so out-of-range
+mints leak into active liquidity.
+
+---
+
+## P-5 — FeeGrowthOutsideConsistency
+
+**Statement.** For every initialized tick `t`, at all times:
+
+- `feeGrowthOutside0X128[t] ≤ feeGrowthGlobal0X128`
+- `feeGrowthOutside1X128[t] ≤ feeGrowthGlobal1X128`
+
+after any sequence of `initializeTick`, `swapAccrue`, and
+`crossTick`. The init + flip rules:
+
+- On `initializeTick(t)`: if `currentTick ≥ t`, seed
+  `feeGrowthOutside[t] = feeGrowthGlobal`; else seed `0`.
+- On `crossTick(t)`: `feeGrowthOutside[t] := feeGrowthGlobal − feeGrowthOutside[t]`.
+
+The flip preserves the bound: post-flip outside = old "below" amount,
+which is non-negative and bounded by global.
+
+**What this models (and what it does not).** This is the
+**increment-only conservation form** of P-5. Real Uniswap v3 stores
+both global and outside as `uint256` and admits wrap-around — the
+`(global − outside)` subtraction recovers position-local growth
+modulo 2^256, and `outside > global` is a legitimate state mid-wrap.
+The increment-only form is strictly conservative for any swap
+sequence that does not cross the wrap boundary (the operative case for
+any realistic pool). The wrap-around variant is documented as a
+Week-3 add (see RUN_SUMMARY §W2-6).
+
+**Why this property.** Uniswap v3's per-LP fee withdrawal computes
+`feeGrowthInside(L, U) = feeGrowthGlobal − feeGrowthBelow(L) − feeGrowthAbove(U)`
+where the "below" / "above" amounts are derived from `feeGrowthOutside`.
+The flip rule is the load-bearing operation that keeps "outside"
+aligned with the pool's current tick relative to `t`. Any fork that
+mis-ports `Tick.cross` or `Tick.update` desyncs this computation and
+LPs over-withdraw or under-withdraw.
+
+**Citation.** Uniswap v3 `Tick.sol::update` (the
+`tickCurrent >= tick` branch — the init rule) and
+`Tick.sol::cross` (the flip rule). PancakeSwap v3 mirror at the
+same path.
+
+**Bug class caught.** A fork whose `Tick.cross`:
+- skips the flip,
+- flips on the wrong branch direction,
+- or computes the flip as `outside − global` (sign-inverted).
+
+Also catches a fork whose `Tick.update` initializes outside on the
+wrong branch of `tickCurrent >= tick`.
+
+**Test plan.** `invariants/PancakeV3FeeGrowthOutside.t.sol`:
+- `test_property_initialize_belowCurrent_seedsOutsideEqualsGlobal` — init below current.
+- `test_property_initialize_aboveCurrent_seedsOutsideZero` — init above current.
+- `test_property_crossUp_flipsOutside_toGlobalMinusOldOutside` — flip rule.
+- `test_property_doubleCross_isInvolutive` — double-flip restores original.
+- `test_property_outside_neverExceedsGlobal_afterAccrues` — bound after accrues.
+- `testFuzz_property_outside_boundedAfterSwap` — fuzz swap amounts preserve bound.
+- `invariant_feeGrowthOutside_bounded_byGlobal` — stateful fuzz over three initialized ticks under accrue + cross fuzzing.
+
+**Planted-twin twin (M2 — Week 3 work).** Not yet landed; the planted
+hunk will invert the flip direction (`outside − global` instead of
+`global − outside`) so the conservation property fires on the first
+crossing.
+
+---
+
+## What is M2 (next milestone, partial — P-4 + P-5 landed in Week 2)
+
+- **P-4 — LiquidityEventConsistency.** ✅ Landed Week 2 (above).
+- **P-5 — FeeGrowthOutsideConsistency** (increment-only form). ✅ Landed Week 2 (above); wrap-around variant deferred to Week 3.
 - **P-6 — ProtocolFeeAccrualBound.** `protocolFees0/1` storage grows
   by exactly the configured `feeProtocol` fraction of swap fees;
-  `feeGrowthGlobal` is correspondingly reduced.
+  `feeGrowthGlobal` is correspondingly reduced. Week 3.
 - **P-7 — ObservationCardinalityMonotonicity.** Oracle observation
   cardinality is monotonic non-decreasing across
-  `increaseObservationCardinalityNext`.
-- **Planted-twin CI pairs** for P-1, P-2, P-3 (lands the
-  deterministic `INVARIANT VIOLATED` pattern that the CI workflow's
-  `*-planted-fires` jobs gate on).
+  `increaseObservationCardinalityNext`. Week 3.
+- **Planted-twin CI pair for P-1.** ✅ Landed Week 2.
+- **Planted-twin CI pairs for P-2 + P-3.** Week 3.
+- **BSC-mainnet fork tests** at a pinned block. Week 3.
 
 ## What is M3 (not in v0.0.1)
 
