@@ -1,5 +1,7 @@
 # bsc-invariants (v0.0.2, Weeks 1 + 2)
 
+[![ci](https://github.com/caliperforge/bsc-invariants/actions/workflows/ci.yml/badge.svg)](https://github.com/caliperforge/bsc-invariants/actions/workflows/ci.yml)
+
 **Status.** Weeks 1 + 2 of the BNB grant build-to-win. PancakeSwap v3
 invariants P-1 (FeeGrowthGlobalMonotonicity), P-2 (TickInBounds), P-3
 (SqrtPriceX96InBounds), P-4 (LiquidityEventConsistency), and P-5
