@@ -167,6 +167,18 @@ file lands.
 The current CI status (from the run log, not the badge) is recorded
 in [`RUN_SUMMARY.md`](RUN_SUMMARY.md) §3.
 
+Every active planted twin is also certified on a fixed 16-seed set as
+a standing merge gate (`reachability-multi-seed` job). Every seed must
+FAIL the twin with an `INVARIANT VIOLATED` marker; if any seed passes
+on any twin, CI turns red. Verdict from the local run on 2026-07-13:
+
+```
+reachability certified: yes (all active twins, 16/16 failed as required)
+```
+
+Per-twin k / 16 numbers, the seed list, and the merge-gate rule are in
+[`docs/reachability.md`](docs/reachability.md).
+
 ---
 
 ## Roadmap (NOT YET IN-TREE; see SCOPE.md)
