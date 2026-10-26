@@ -13,7 +13,7 @@ inputs:
       happen in one place across CaliperForge libraries. The nightly workflow
       (M2) overrides with `nightly` on its "latest" leg to surface drift.
     required: false
-    default: "nightly-de33b6af53005037b463318d2628b5cfcaf39916"
+    default: "v1.8.6"
   forge-std-version:
     description: "forge-std tag to install."
     required: false
